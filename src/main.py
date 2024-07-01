@@ -11,19 +11,23 @@ app = FastAPI()
 Base.metadata.create_all(bind=engine)
 
 class CreateJobRequest(BaseModel):
-    title: str
-    description: str
-    created_at: datetime = None
-    updated_at: datetime = None
+    subject: str
+    content: str
+    create_date: datetime = None
+    
+class JobResponse(BaseModel):
+    id: int
+    subject: str
+    content: str
+    create_date: datetime
 
 @app.post("/jobs")
 def create_job(details: CreateJobRequest, db: Session = Depends(get_db)):
     try:
         to_create = Job(
-            title=details.title,
-            description=details.description,
-            created_at=details.created_at or datetime.now(),
-            updated_at=details.updated_at or datetime.now()
+            subject=details.subject,
+            content=details.content,
+            create_date=details.create_date or datetime.now()
         )
         db.add(to_create)
         db.commit()
@@ -36,27 +40,11 @@ def create_job(details: CreateJobRequest, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/jobs")
+@app.get("/jobs", response_model=list[JobResponse])
 def get_jobs(db: Session = Depends(get_db)):
-    jobs = db.query(Job).all()
-    return jobs
-
-@app.get("/jobs/{job_id}")
-def get_job(job_id: int, db: Session = Depends(get_db)):
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job
-
-@app.delete("/jobs/{job_id}")
-def delete_job(job_id: int, db: Session = Depends(get_db)):
     try:
-        deleted_job = db.query(Job).filter(Job.id == job_id).first()
-        if not deleted_job:
-            raise HTTPException(status_code=404, detail="Job not found")
-        db.delete(deleted_job)
-        db.commit()
-        return {"deleted_id": deleted_job.id}
+        jobs = db.query(Job).all()
+        return jobs
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
