@@ -8,6 +8,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "3.11.5"
 fastapi = "^0.111.0"
+sqlalchemy = "^2.0.31"
+fastapi-mail = "^1.4.1"
+python-dotenv = "^1.0.1"
 
 
 [build-system]
