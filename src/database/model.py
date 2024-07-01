@@ -3,12 +3,12 @@
 """
 from sqlalchemy import Column, Integer, String, Text, DateTime
 
-from database import Base
+from .session import Base
 
 '''
 테스트용 테이블
 '''
-class example(Base):
+class Job(Base):
     __tablename__ = "question"
 
     id = Column(Integer, primary_key=True)
