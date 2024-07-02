@@ -11,6 +11,7 @@ fastapi = "^0.111.0"
 sqlalchemy = "^2.0.31"
 fastapi-mail = "^1.4.1"
 python-dotenv = "^1.0.1"
+asyncpg = "^0.29.0"
 
 
 [build-system]
