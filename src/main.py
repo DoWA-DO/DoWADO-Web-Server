@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from src.core.cors import setup_cors
 from src.core.event import app_lifespan
 from src.core.error import setup_error_handling
-from src.api.v1.example.example_control import router as v1_router
+from src.api.v1 import router as v1_router
 from src.core.config import setup_logging
 
 setup_logging()  # 로깅 설정
@@ -17,4 +17,4 @@ app = FastAPI(
 
 setup_cors(app)  # CORS 설정
 setup_error_handling(app)  # 에러 핸들링 설정
-app.include_router(v1_router, prefix="/api/v1")  # API v1 라우터 추가
+app.include_router(v1_router, prefix="/api/v1")  # API v1에 있는 라우터들 추가

@@ -22,7 +22,7 @@ async def get_examples(db: AsyncSession) -> list[ReadExampleInfo]:  # = Depends(
 
 # Create
 async def create_example(example: CreateExample, db: AsyncSession) -> None:
-    await db.execute(insert(Job).values(example.dict()))
+    await db.execute(insert(Job).values(example.dict())) # table 명: example
     await db.commit() # 자동으로 commit되게 설정 변경 필요
     
     
