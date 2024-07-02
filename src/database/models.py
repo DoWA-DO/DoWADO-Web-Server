@@ -11,10 +11,10 @@ Base = declarative_base()
 '''
 테스트용 테이블
 '''
-class Job(Base):
-    __tablename__ = "question"
+class Example(Base):
+    __tablename__ = "example"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    subject = Column(String, nullable=False)
-    content = Column(Text, nullable=False)
-    create_date = Column(DateTime, nullable=False)
+    example_id = Column(String, primary_key=True)
+    example_name = Column(Text, nullable=True)
+    example_comm1 = Column(Text, nullable=True)
+    example_comm2 = Column(Text, nullable=True)
