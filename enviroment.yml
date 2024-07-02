@@ -5,6 +5,3 @@ dependencies:
   - python=3.11.5 
   - fastapi
   - uvicorn
-  - sqlalchemy
-  - psycopg2
-  

@@ -1,60 +1,25 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from datetime import datetime
+"""
+메인 서버 모듈
+"""
+from fastapi import FastAPI
+from src.core.cors import setup_cors
+from src.core.event import app_lifespan
+from src.core.error import setup_error_handling
+from src.api.v1 import router as v1_router
+from src.core.config import setup_logging
 
-from src.database.model import Base, Job
-from src.database.session import engine, SessionLocal, get_db
-from sqlalchemy.exc import SQLAlchemyError
 
-app = FastAPI()
-Base.metadata.create_all(bind=engine)
+setup_logging()  # 로깅 설정
 
-class CreateJobRequest(BaseModel):
-    subject: str
-    content: str
-    create_date: datetime = None
-    
-class JobResponse(BaseModel):
-    id: int
-    subject: str
-    content: str
-    create_date: datetime
 
-@app.post("/jobs")
-def create_job(details: CreateJobRequest, db: Session = Depends(get_db)):
-    try:
-        to_create = Job(
-            subject=details.subject,
-            content=details.content,
-            create_date=details.create_date or datetime.now()
-        )
-        db.add(to_create)
-        db.commit()
-        db.refresh(to_create)
-        return to_create
-    except SQLAlchemyError as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+app = FastAPI(
+    title="Semtle-Web-Server",
+    version="0.1",
+    description="API 서버",
+    lifespan=app_lifespan  # 생명주기 이벤트 설정
+)
 
-@app.get("/jobs", response_model=list[JobResponse])
-def get_jobs(db: Session = Depends(get_db)):
-    try:
-        jobs = db.query(Job).all()
-        return jobs
-    except SQLAlchemyError as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+setup_cors(app)  # CORS 설정
+setup_error_handling(app)  # 에러 핸들링 설정
+app.include_router(v1_router, prefix="/api/v1")  # API v1 라우터 추가
