@@ -6,6 +6,7 @@ from datetime import datetime
 from src.database.model import Base, Job
 from src.database.session import engine, SessionLocal, get_db
 from sqlalchemy.exc import SQLAlchemyError
+from src.api.v1.example import question_router
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -52,9 +53,4 @@ def get_jobs(db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+app.include_router(question_router.router) # router 객체 등록
