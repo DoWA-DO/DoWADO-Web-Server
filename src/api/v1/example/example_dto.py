@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from fastapi import Depends, Form, Path
 from pydantic import Field
 from src.database.dto import BaseDTO
+from typing import Union
 
 
 # - 개발하려는 API의 목적에 맞게 클래스 작성
@@ -17,12 +18,12 @@ from src.database.dto import BaseDTO
 #   2) 목적에 따라 클래스명 원하는 대로 선언(컨벤션에 맞춰 작성할 것, 대소문자 유의)
 
 class keyExample(BaseDTO):
-    example_id: Annotated[Optional[str], Form(description="예제 id")]
+    example_id: Annotated[Union[str, None], Form(description="예제 id")]
 
 class UpdateExample(BaseDTO):
-    example_name: Annotated[Optional[str], Form(description="예제 이름")] = 'test1'
-    example_comm1: Annotated[Optional[str], Form(description="예제 내용1_Form")] = 'sample1'
-    example_comm2: Annotated[Optional[str], Field(description="예제 내용2_Field")] = 'sample2'
+    example_name: Annotated[Union[str, None], Form(description="예제 이름")] = 'test1'
+    example_comm1: Annotated[Union[str, None], Form(description="예제 내용1_Form")] = 'sample1'
+    example_comm2: Annotated[Union[str, None], Field(description="예제 내용2_Field")] = 'sample2'
 
 
 class CreateExample(keyExample, UpdateExample):
