@@ -18,3 +18,15 @@ class Example(Base):
     example_name = Column(Text, nullable=True)
     example_comm1 = Column(Text, nullable=True)
     example_comm2 = Column(Text, nullable=True)
+    
+'''
+교원용 테이블
+'''
+class Teacher(Base):
+    __tablename__ = "teacher"
+    
+    teacher_email = Column(String, primary_key=True)
+    teacher_auth = Column(Boolean, nullable=False)
+    teacher_password = Column(String, nullable=False)
+    teacher_name = Column(String, nullable=False)
+    
