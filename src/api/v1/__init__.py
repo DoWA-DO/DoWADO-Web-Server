@@ -5,6 +5,4 @@ from src.api.v1.teacher.teacher_control import router as teacher_router
 
 router = APIRouter()
 router.include_router(example_router)
-
-teacherrouter = APIRouter()
-teacherrouter.include_router(teacher_router)
+router.include_router(teacher_router)

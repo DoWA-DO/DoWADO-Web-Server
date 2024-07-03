@@ -26,7 +26,7 @@ class Teacher(Base):
     __tablename__ = "teacher"
     
     teacher_email = Column(String, primary_key=True)
-    teacher_auth = Column(Boolean, nullable=False)
+    teacher_auth = Column(Boolean, nullable=True)
     teacher_password = Column(String, nullable=False)
     teacher_name = Column(String, nullable=False)
     teacher_schoolname = Column(String, nullable=False)
