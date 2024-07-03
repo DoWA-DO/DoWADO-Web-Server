@@ -26,7 +26,10 @@ class Teacher(Base):
     __tablename__ = "teacher"
     
     teacher_email = Column(String, primary_key=True)
-    teacher_auth = Column(Boolean, nullable=True)
+    teacher_auth = Column(Boolean, default = False, nullable = False)
     teacher_password = Column(String, nullable=False)
     teacher_name = Column(String, nullable=False)
     teacher_schoolname = Column(String, nullable=False)
+    #teacher_picture은 기본적으로는 False로 제공, 이후 S3에 해당 계정의 사진이 올라갔는지를 확인하고 True로 바꾸는 로직 필요?
+    teacher_picture = Column(Boolean, default = False, nullable = False)
+    
