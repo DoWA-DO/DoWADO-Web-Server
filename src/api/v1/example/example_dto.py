@@ -27,10 +27,16 @@ class UpdateExample(BaseDTO):
 
 
 class CreateExample(keyExample, UpdateExample):
-    ...
+    example_id: Annotated[str | None, Form(description="예제 id")]
+    example_name: Annotated[str | None, Form(description="예제 이름")] = 'test1'
+    example_comm1: Annotated[str | None, Form(description="예제 내용1_Form")] = 'sample1'
+    example_comm2: Annotated[str | None, Field(description="예제 내용2_Field")] = 'sample2'
 
 class ReadExampleInfo(CreateExample):
-    ...
+    example_id: Annotated[str | None, Form(description="예제 id")]
+    example_name: Annotated[str | None, Form(description="예제 이름")] = 'test1'
+    example_comm1: Annotated[str | None, Form(description="예제 내용1_Form")] = 'sample1'
+    example_comm2: Annotated[str | None, Field(description="예제 내용2_Field")] = 'sample2'
     
 class DeleteExample(BaseDTO):
     example_id: Annotated[str, Form(description="삭제할 예제 id")]
