@@ -1,38 +1,27 @@
-# 사용하기 전 네이버 메일 환경설정에서 pop3/smtp 사용으로 설정 바꿔야 함
+# naver smtp 이용하기 전 네이버 메일에서 pop3/smtp 사용으로 바꿔야 함.
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
+from fastapi import HTTPException
+from .mail_dto import EmailRequest
 
-app = FastAPI()
-
-class EmailRequest(BaseModel):
-    from_email: str
-    to_email: str
-    subject: str
-    body: str
-    verification_url: str
-
-@app.post("/send_email")
-def send_email(email_request: EmailRequest):
-    smtp_server = "smtp.naver.com" #smtp server 설정 (추후 google로 변경 예정)
+async def send_email(email_request: EmailRequest):
+    smtp_server = "smtp.naver.com"
     smtp_port = 587
 
     try:
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.ehlo()
         server.starttls()
-        server.login("example@naver.com", "example") # naver id, pw
+        server.login("example@naver.com", "example") #서버로 사용할 naver id pw
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = email_request.subject
         msg['From'] = email_request.from_email
         msg['To'] = email_request.to_email
 
-        # 버튼 구현하기 위한 코드
-        html = f""" 
+        html = f"""
         <html>
           <body>
             <p>{email_request.body}</p>
