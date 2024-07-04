@@ -24,6 +24,6 @@ async def update_teacher(teacher_email: str, teacher_info: UpdateTeacher, db: As
     await teacher_dao.update_teacher(teacher_email, teacher_info, db)
     
 
-# Delete
+# Delete, 교원 삭제는 super_teacher 부분으로 넘어 가야 함. - TODO
 async def delete_teacher(teacher_email: str, db: AsyncSession) -> None:
     await teacher_dao.delete_teacher(teacher_email, db)

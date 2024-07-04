@@ -74,7 +74,7 @@ async def update_teacher(
     return SU.SUCCESS
 
 
-# Delete
+# Delete, 교원 삭제는 super_teacher 쪽으로 이동 해야 함. - TODO
 @router.delete(
     "/",
     summary="교원 삭제",

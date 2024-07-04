@@ -32,7 +32,7 @@ async def update_teacher(teacher_email: str, teacher_info: UpdateTeacher, db: As
     await db.commit()
     
 
-# Delete
+# Delete, 교원 삭제 부분은 super_teacher 로 넘어가 야함. - TODO
 async def delete_teacher(teacher_email: str, db: AsyncSession) -> None:
     await db.execute(delete(Teacher).where(Teacher.teacher_email == teacher_email))
     await db.commit()
