@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.session import get_db
-from src.api.v1.super_teacher.super_teacher_dto import VerifyTeacherEmail
-from src.api.v1.super_teacher import super_teacher_service
+from src.api.v1.super_teacher import super_teacher_dao
 from src.core.status import Status, SU, ER
 import logging
 
@@ -21,5 +20,5 @@ async def verify_email(
     db: AsyncSession = Depends(get_db)
     
 ):
-    await super_teacher_service.verify_email(teacher_email, db)
+    await super_teacher_dao.verify_email(teacher_email, db)
     return SU.SUCCESS
