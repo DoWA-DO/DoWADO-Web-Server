@@ -60,7 +60,7 @@ async def create_teacher(
     # 중복 여부 확인
     existing_teacher = await get_existing_user(db, teacher)
     if existing_teacher:
-        raise HTTPException(status_code=400, detail=ER.DUPLICATE_RECORD)
+        raise HTTPException(status_code=409, detail=ER.DUPLICATE_RECORD)
     
     await super_teacher_service.create_teacher(teacher, db)
     return SU.CREATED
