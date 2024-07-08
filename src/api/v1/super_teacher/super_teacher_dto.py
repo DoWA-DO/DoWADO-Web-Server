@@ -24,17 +24,18 @@ class UpdateTeacher(BaseDTO):
     teacher_schoolname: Annotated[Union[str, None], Field(description="교원 학교 이름")] 
 
 class CreateTeacher(keyTeacher, UpdateTeacher):
+    teacher_password2: Annotated[Union[str, None], Form(description="교원 비밀번호 확인")]
     teacher_auth: Annotated[Union[bool, None], Form(description="메일 인증 여부")]
     
-    @field_validator('username', 'password1', 'password2', 'email', 'schoolname')
+    @field_validator('teacher_email', 'teacher_password', 'teacher_password2', 'teacher_name', 'teacher_schoolname')
     def not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError('빈 값은 허용되지 않습니다.')
         return v
     
-    @field_validator('password2')
+    @field_validator('teacher_password2')
     def passwords_match(cls, v, info: FieldValidationInfo):
-        if 'password1' in info.data and v != info.data['password1']:
+        if 'teacher_password' in info.data and v != info.data['teacher_password']:
             raise ValueError('비밀번호가 일치하지 않습니다')
         return v
     

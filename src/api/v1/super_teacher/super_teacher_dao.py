@@ -4,6 +4,7 @@
 API 개발 시 참고 : 비즈니스 로직 작성, service에서 호출
 """
 # 기본적으로 추가
+from typing import Optional
 from fastapi import Depends, HTTPException
 from sqlalchemy import Result, ScalarResult, select, update, insert, delete
 from sqlalchemy.orm import Session
@@ -15,6 +16,8 @@ from src.database.model import Teacher
 from src.database.session import get_db
 from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 # Read
 async def get_teacher(db: AsyncSession) -> list[ReadTeacherInfo]:  # = Depends(get_db)
     result = await db.execute(select(Teacher))
@@ -23,14 +26,27 @@ async def get_teacher(db: AsyncSession) -> list[ReadTeacherInfo]:  # = Depends(g
 
 # Create
 async def create_teacher(teacher: CreateTeacher, db: AsyncSession) -> None:
+    '''
     if not await verify_email(teacher.teacher_email): 
         raise ValueError("Unauthorized to create a teacher") # 인증 실패
+    '''
+    db_user = Teacher(teacher_name=teacher.teacher_name,
+                   teacher_password=pwd_context.hash(teacher.teacher_password),  # 해시화
+                   teacher_auth=True,
+                   teacher_email=teacher.teacher_email,
+                   teacher_schoolname=teacher.teacher_schoolname)
+    db.add(db_user)
+    await db.commit()
     
-    teacher.teacher_auth = True # 인증 성공 시 teacher_auth를 True로 변경
-    await db.execute(insert(Teacher).values(teacher.dict()))
-    await db.commit() 
-    
-    
+async def get_existing_user(db: AsyncSession, teacher: CreateTeacher) -> Optional[Teacher]: # 중복 예외 처리
+    query = select(Teacher).where(
+        (Teacher.teacher_name == teacher.teacher_name) |
+        (Teacher.teacher_email == teacher.teacher_email)
+    )
+    result = await db.execute(query)
+    existing_teacher = result.scalars().first()
+    return existing_teacher
+        
 # Update
 async def update_teacher(teacher_email: str, teacher_info: UpdateTeacher, db: AsyncSession) -> None:
     await db.execute(update(Teacher).filter(Teacher.teacher_email==teacher_email).values(teacher_info.dict()))

@@ -6,7 +6,7 @@ API 개발 시 참고 : 프론트엔드에서 http 엔드포인트를 통해 호
 # 기본적으로 추가
 from typing import Annotated
 from typing import Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from src.core.status import Status, SU, ER
 import logging
 
@@ -16,6 +16,7 @@ from src.database.session import get_db
 
 # 호출할 모듈 추가
 from src.api.v1.super_teacher.super_teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
+from src.api.v1.super_teacher.super_teacher_dao import get_existing_user
 from src.api.v1.super_teacher import super_teacher_service
 
 
@@ -44,7 +45,7 @@ async def get_teacher(db: AsyncSession = Depends(get_db)):
 
 # Create
 @router.post(
-    "/",
+    "/create",
     summary="입력 받은 교원 데이터를 데이터베이스에 추가",
     description="- String-Form / Boolean-Form / String-Form / String-Form / String-Form",
     # response_model=ResultType, # -> 코드 미완성, 주석처리
@@ -55,6 +56,12 @@ async def create_teacher(
     db: AsyncSession = Depends(get_db)
 ):
     logger.info("----------신규 교원 생성----------")
+    
+    # 중복 여부 확인
+    existing_teacher = await get_existing_user(db, teacher)
+    if existing_teacher:
+        raise HTTPException(status_code=400, detail=ER.DUPLICATE_RECORD)
+    
     await super_teacher_service.create_teacher(teacher, db)
     return SU.CREATED
 
