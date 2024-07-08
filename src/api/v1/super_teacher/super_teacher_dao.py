@@ -107,13 +107,13 @@ async def get_user(db: AsyncSession, username: str):
     Fetch the user from the database and return the teacher password.
     """
     result = await db.execute(select(Teacher).filter(Teacher.teacher_email == username).limit(1))
-    user = result.scalars().all()
-    password = [teacher.teacher_password for teacher in user]
+    user = result.scalars().first()
+    #hashed_password = [teacher.teacher_password for teacher in user]
+    
     if user:
-        logging.info(f"Teacher password: {password}")
-        return password
+        logging.info(f"Teacher info: {user.teacher_email, user.teacher_password}")
+        return user.teacher_password, user.teacher_email
     else:
-        logging.info("User not found")
-        return None
+        return None, None
 
 

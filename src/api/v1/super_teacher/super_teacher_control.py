@@ -114,16 +114,17 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
                            db: AsyncSession = Depends(get_db)):
     # check user and password
     user = await super_teacher_dao.get_user(db, form_data.username) # db에서 사용자 정보 가져옴
-    if not user or not pwd_context.verify(form_data.password, user): # db와 비교
+    if not user or not pwd_context.verify(form_data.password, user[0]): # db와 비교
         raise HTTPException(
             status_code=ER.UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
+    logging.info("비교 여부: %s", pwd_context.verify(form_data.password, user[0]))
+    
     # make access token
     data = {
-        "sub": user.username,
+        "sub": user[1],
         "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
     access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
@@ -131,6 +132,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "username": user.username
+        "username": user[1]
     }
     
