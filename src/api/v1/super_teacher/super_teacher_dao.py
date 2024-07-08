@@ -13,8 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.v1.super_teacher.super_teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
 from src.database.model import Teacher
 from src.database.session import get_db
-import re
-
+from passlib.context import CryptContext
 
 # Read
 async def get_teacher(db: AsyncSession) -> list[ReadTeacherInfo]:  # = Depends(get_db)
@@ -45,9 +44,6 @@ async def delete_teacher(teacher_email: str, db: AsyncSession) -> None:
 
 # Verify
 async def verify_email(teacher_email: str) -> bool:
-    # 이메일 유효성 검사
-    if not is_valid_email(teacher_email):
-        return False
 
     # 이메일 확인 및 처리 로직
     try:
@@ -55,25 +51,7 @@ async def verify_email(teacher_email: str) -> bool:
         return {"message": "Account verified successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to verify account: {e}")
-    
-def is_valid_email(teacher_email: str) -> bool:
-    """
-    이메일 유효성 검사 함수
-    
-    Args:
-        teacher_email (str): 검사할 이메일 주소
-    
-    Returns:
-        bool: 이메일 유효성 여부
-    """
-    # 이메일 형식 정규 표현식
-    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    
-    # 정규 표현식을 사용하여 이메일 유효성 검사
-    if re.match(email_regex, teacher_email):
-        return True
-    else:
-        return False
+
     
 async def verify_teacher(teacher_email: str, db: AsyncSession) -> bool:
     """

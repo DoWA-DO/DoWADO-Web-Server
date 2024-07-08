@@ -5,7 +5,8 @@ from fastapi import Depends, Form, Path
 from pydantic import Field
 from src.database.dto import BaseDTO
 from typing import Union
-
+from pydantic import field_validator, EmailStr
+from pydantic_core.core_schema import FieldValidationInfo
 
 # - 개발하려는 API의 목적에 맞게 클래스 작성
 # - 중복되는 부분은 상속받아서 중복 코드 최소화하기
@@ -15,7 +16,7 @@ from typing import Union
 #   2) 목적에 따라 클래스명 원하는 대로 선언(컨벤션에 맞춰 작성할 것, 대소문자 유의)
 
 class keyTeacher(BaseDTO):
-    teacher_email: Annotated[Union[str, None], Form(description="교원 메일")]
+    teacher_email: Annotated[Union[EmailStr, None], Form(description="교원 메일")] # EmailStr(이메일 형식 확인)
 
 class UpdateTeacher(BaseDTO):
     teacher_password: Annotated[Union[str, None], Form(description="교원 비밀번호")] 
@@ -24,7 +25,18 @@ class UpdateTeacher(BaseDTO):
 
 class CreateTeacher(keyTeacher, UpdateTeacher):
     teacher_auth: Annotated[Union[bool, None], Form(description="메일 인증 여부")]
-    ...
-
+    
+    @field_validator('username', 'password1', 'password2', 'email', 'schoolname')
+    def not_empty(cls, v):
+        if not v or not v.strip():
+            raise ValueError('빈 값은 허용되지 않습니다.')
+        return v
+    
+    @field_validator('password2')
+    def passwords_match(cls, v, info: FieldValidationInfo):
+        if 'password1' in info.data and v != info.data['password1']:
+            raise ValueError('비밀번호가 일치하지 않습니다')
+        return v
+    
 class ReadTeacherInfo(CreateTeacher):
     ...
