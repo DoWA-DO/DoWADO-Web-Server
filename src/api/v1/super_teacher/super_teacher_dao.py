@@ -4,6 +4,7 @@
 API 개발 시 참고 : 비즈니스 로직 작성, service에서 호출
 """
 # 기본적으로 추가
+import logging
 from typing import Optional
 from fastapi import Depends, HTTPException
 from sqlalchemy import Result, ScalarResult, select, update, insert, delete
@@ -100,3 +101,19 @@ async def verify_teacher(teacher_email: str, db: AsyncSession) -> bool:
     except Exception as e:
         # 인증 실패 시 예외 처리
         raise HTTPException(status_code=500, detail=f"Failed to verify teacher account: {e}")
+
+async def get_user(db: AsyncSession, username: str):
+    """
+    Fetch the user from the database and return the teacher password.
+    """
+    result = await db.execute(select(Teacher).filter(Teacher.teacher_email == username).limit(1))
+    user = result.scalars().all()
+    password = [teacher.teacher_password for teacher in user]
+    if user:
+        logging.info(f"Teacher password: {password}")
+        return password
+    else:
+        logging.info("User not found")
+        return None
+
+

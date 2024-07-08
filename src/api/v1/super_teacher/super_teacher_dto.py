@@ -41,3 +41,9 @@ class CreateTeacher(keyTeacher, UpdateTeacher):
         if 'teacher_password' in info.data and v != info.data['teacher_password']:
             raise ValueError('비밀번호가 일치하지 않습니다')
         return v
+    
+# 로그인 출력 스키마
+class Token(BaseDTO): 
+    access_token: str
+    token_type: str
+    username: str

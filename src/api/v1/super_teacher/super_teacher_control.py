@@ -9,16 +9,24 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from src.core.status import Status, SU, ER
 import logging
+from datetime import timedelta, datetime
 
 # (db 세션 관련)이후 삭제 예정, 개발을 위해 일단 임시로 추가
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.session import get_db
+from fastapi.security import OAuth2PasswordRequestForm
+from jose import jwt
 
 # 호출할 모듈 추가
 from src.api.v1.super_teacher.super_teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
-from src.api.v1.super_teacher.super_teacher_dao import get_existing_user
+from src.api.v1.super_teacher.super_teacher_dao import get_existing_user, pwd_context
 from src.api.v1.super_teacher import super_teacher_service
+from src.api.v1.super_teacher import super_teacher_dto, super_teacher_dao
 
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+# secret key 생성 : openssl rand -hex 32
+SECRET_KEY = "8a4bab952b4e4317af926571fb93f1820f6929ba9c7c70b7969b1a01ec92757f"
+ALGORITHM = "HS256"
 
 # 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
@@ -95,3 +103,34 @@ async def delete_teacher(
 ):
     await super_teacher_service.delete_teacher(teacher_email, db)
     return SU.SUCCESS
+
+# Login
+@router.post(
+    "/login", 
+    summary="로그인",
+    description="- 교원 db에서 일치하는 email, password 확인 후 로그인",
+    response_model=super_teacher_dto.Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
+                           db: AsyncSession = Depends(get_db)):
+    # check user and password
+    user = await super_teacher_dao.get_user(db, form_data.username) # db에서 사용자 정보 가져옴
+    if not user or not pwd_context.verify(form_data.password, user): # db와 비교
+        raise HTTPException(
+            status_code=ER.UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # make access token
+    data = {
+        "sub": user.username,
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    logger.info("----------로그인----------")
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "username": user.username
+    }
+    
