@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.session import get_db
 
 # 호출할 모듈 추가
-from src.api.v1.chat.chat_dto import ReadChatInfo, CreateChat, UpdateChat
+from src.api.v1.chat.chat_dto import ReadChatInfo, CreateChat
 from src.api.v1.chat import chat_service
 from src.database.model import Teacher
 from src.api.v1.login.login_control import get_current_user
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/chat", tags=["채팅"])
 
 # Read
 @router.get(
-    "/",
+    "/read",
     summary="전체 대화 이력 조회",
     description="- 전체 대화 리스트 반환, 등록된 대화가 없는 경우 `[]` 반환",
     response_model=list[ReadChatInfo],
@@ -43,7 +43,7 @@ async def get_chat(
 
 # Create
 @router.post(
-    "/",
+    "/create",
     summary="입력 받은 데이터를 데이터베이스에 추가",
     description="- Text-Form / Text-Form / Text-Form / date-Form",
     responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
@@ -57,10 +57,10 @@ async def create_chat(
     await chat_service.create_chat(chat, db, current_user)
     return SU.CREATED
 
-
+"""
 # Update
 @router.put(
-    "/",
+    "/update",
     summary="입력 받은 데이터로 변경 사항 수정",
     description="- name이 일치하는 데이터의 text, job, date 수정",
     responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
@@ -74,13 +74,13 @@ async def update_chat(
     logger.info("----------기존 대화 이력 수정----------")
     await chat_service.update_chat(chat_name, chat_info, db, current_user)
     return SU.SUCCESS
-
+"""
 
 # Delete
 @router.delete(
-    "/",
+    "/delete",
     summary="대화 이력 삭제",
-    description="- name이 일치하는 데이터 삭제",
+    description="- username이 일치하는 데이터 삭제",
     responses=Status.docs(SU.SUCCESS, ER.DUPLICATE_RECORD),
 )
 async def delete_chat(

@@ -4,6 +4,7 @@ API 개발 시 참고 : API 호출 시 데이터 전달 양식 정의
 # 기본적으로 추가
 from typing import Optional, Annotated
 from datetime import datetime, timezone
+
 from fastapi import Depends, Form, Path
 from pydantic import Field
 from src.database.dto import BaseDTO
@@ -19,14 +20,16 @@ from typing import Union
 
 class keyChat(BaseDTO):
     chat_name: Annotated[Union[str, None], Form(description="학생 이름")]
-
+"""
 class UpdateChat(BaseDTO):
     chat_text: Annotated[Union[str, None], Form(description="대화 내용")] = 'text1'
     chat_job: Annotated[Union[str, None], Form(description="직업")] = 'job1'
     chat_date: Annotated[datetime, Field(description="대화 날짜")] 
-
-class CreateChat(keyChat, UpdateChat):
-    ...
+"""
+class CreateChat(keyChat):
+    chat_text: Annotated[Union[str, None], Form(description="대화 내용")] = 'text1'
+    chat_job: Annotated[Union[str, None], Form(description="직업")] = 'job1'
+    chat_date: Annotated[datetime, Field(description="대화 날짜")]
 
 class ReadChatInfo(CreateChat):
     ...

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload, query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.v1.chat.chat_dto import ReadChatInfo, CreateChat, UpdateChat
+from src.api.v1.chat.chat_dto import ReadChatInfo, CreateChat
 from src.database.model import Chat
 from src.database.session import get_db
 
@@ -25,12 +25,12 @@ async def create_chat(chat: CreateChat, db: AsyncSession) -> None:
     await db.execute(insert(Chat).values(chat.dict())) # db:Chat table:chat
     await db.commit() # 자동으로 commit되게 설정 변경 필요
     
-    
+"""
 # Update
 async def update_chat(chat_name: str, chat_info: UpdateChat, db: AsyncSession) -> None:
     await db.execute(update(Chat).filter(Chat.chat_name==chat_name).values(chat_info.dict()))
     await db.commit()
-    
+"""    
 
 # Delete
 async def delete_chat(chat_name: str, db: AsyncSession) -> None:

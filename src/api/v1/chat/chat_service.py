@@ -2,7 +2,7 @@
 API 개발 시 참고 : 비즈니스 로직 작성, control에서 호출
 """
 # 호출할 모듈 추가
-from src.api.v1.chat.chat_dto import ReadChatInfo, CreateChat, UpdateChat
+from src.api.v1.chat.chat_dto import ReadChatInfo, CreateChat
 from src.api.v1.chat import chat_dao
 
 # 이후 삭제 예정, 일단 기본 추가
@@ -18,11 +18,11 @@ async def get_chat(db: AsyncSession) -> list[ReadChatInfo]:
 async def create_chat(chat: CreateChat, db: AsyncSession) -> None:
     await chat_dao.create_chat(chat, db)
     
-    
+"""    
 # Update
 async def update_chat(chat_name: str, chat_info: UpdateChat, db: AsyncSession) -> None:
     await chat_dao.update_chat(chat_name, chat_info, db)
-    
+"""    
 
 # Delete
 async def delete_chat(chat_text: str, db: AsyncSession) -> None:
