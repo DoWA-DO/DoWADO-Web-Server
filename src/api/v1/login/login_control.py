@@ -67,7 +67,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         "username": user[1]
     }
     
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
