@@ -15,11 +15,12 @@ from src.database.session import get_db
 # 호출할 모듈 추가
 from src.api.v1.chat.chat_dto import ReadChatInfo, CreateChat, UpdateChat
 from src.api.v1.chat import chat_service
-
+from src.database.model import Teacher
+from src.api.v1.login.login_control import get_current_user
 
 # 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/chat", tags=["chat"])
+router = APIRouter(prefix="/chat", tags=["채팅"])
 
 # Read
 @router.get(
@@ -30,10 +31,13 @@ router = APIRouter(prefix="/chat", tags=["chat"])
     responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
 )
 # 함수명 get, post, update, delete 중 1택 + 목적에 맞게 이름 작성
-async def get_chat(db: AsyncSession = Depends(get_db)):
+async def get_chat(
+    db: AsyncSession = Depends(get_db),
+    current_user: Teacher = Depends(get_current_user)
+    ):
     # 개발 중 logging 사용하고 싶을 때 이 코드 추가
     logger.info("----------전체 대화 이력 조회----------")
-    chat_info = await chat_service.get_chat(db)
+    chat_info = await chat_service.get_chat(db, current_user)
     return chat_info
 
 
@@ -46,10 +50,11 @@ async def get_chat(db: AsyncSession = Depends(get_db)):
 )
 async def create_chat(
     chat: Optional[CreateChat],
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: Teacher = Depends(get_current_user)
 ):
     logger.info("----------신규 대화 생성----------")
-    await chat_service.create_chat(chat, db)
+    await chat_service.create_chat(chat, db, current_user)
     return SU.CREATED
 
 
@@ -63,10 +68,11 @@ async def create_chat(
 async def update_chat(
     chat_name: str,  # JWT 토큰에서 id 가져오는 방식으로 변경, 이건 임시조치
     chat_info: Optional[UpdateChat],
+    current_user: Teacher = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     logger.info("----------기존 대화 이력 수정----------")
-    await chat_service.update_chat(chat_name, chat_info, db)
+    await chat_service.update_chat(chat_name, chat_info, db, current_user)
     return SU.SUCCESS
 
 
@@ -79,7 +85,8 @@ async def update_chat(
 )
 async def delete_chat(
     chat_name: str, # JWT 토큰에서 id 가져오는 방식으로 변경, 임시조치
+    current_user: Teacher = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    await chat_service.delete_chat(chat_name, db)
+    await chat_service.delete_chat(chat_name, db, current_user)
     return SU.SUCCESS

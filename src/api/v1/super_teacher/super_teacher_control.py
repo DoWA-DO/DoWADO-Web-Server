@@ -31,14 +31,14 @@ ALGORITHM = "HS256"
 
 # 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/teacher", tags=["teacher"])
+router = APIRouter(prefix="/teacher", tags=["교원 관리"])
 
 # 라우터 추가 시 현재는 src.api.v1.__init__.py에 생성하려는 라우터 추가해줘야 함.(수정 예정)
 
 
 # Read
 @router.get(
-    "/",
+    "/read",
     summary="전체 교원 조회",
     description="- 전체 교원 리스트 반환, 등록된 교원이 없는 경우 `[]` 반환",
     response_model=list[ReadTeacherInfo],
@@ -54,8 +54,8 @@ async def get_teacher(db: AsyncSession = Depends(get_db)):
 
 # Create
 @router.post(
-    "/create",
-    summary="입력 받은 교원 데이터를 데이터베이스에 추가",
+    "/signup",
+    summary="회원가입",
     description="- String-Form / Boolean-Form / String-Form / String-Form / String-Form",
     # response_model=ResultType, # -> 코드 미완성, 주석처리
     responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
@@ -76,8 +76,8 @@ async def create_teacher(
 
 # Update
 @router.put(
-    "/",
-    summary="입력 받은 데이터로 교원 변경 사항 수정",
+    "/update",
+    summary="교원 변경 사항 수정",
     description="- email이 일치하는 데이터의 비밀번호, 이름, 학교이름 수정",
     responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
 )
@@ -93,8 +93,8 @@ async def update_teacher(
 
 # Delete
 @router.delete(
-    "/",
-    summary="교원 삭제",
+    "/delete",
+    summary="교원 데이터 삭제",
     description="- 교원 이메일이 일치하는 데이터 삭제",
     responses=Status.docs(SU.SUCCESS, ER.DUPLICATE_RECORD),
 )
