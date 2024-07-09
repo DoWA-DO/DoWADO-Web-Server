@@ -7,6 +7,7 @@ API 개발 시 참고 : 프론트엔드에서 http 엔드포인트를 통해 호
 from typing import Annotated
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
+from src.core import status
 from src.core.status import Status, SU, ER
 import logging
 from datetime import timedelta, datetime
@@ -109,14 +110,16 @@ async def delete_teacher(
     "/login", 
     summary="로그인",
     description="- 교원 db에서 일치하는 email, password 확인 후 로그인",
-    response_model=super_teacher_dto.Token)
+    response_model=super_teacher_dto.Token,
+    responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
+)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
                            db: AsyncSession = Depends(get_db)):
     # check user and password
     user = await super_teacher_dao.get_user(db, form_data.username) # db에서 사용자 정보 가져옴
     if not user or not pwd_context.verify(form_data.password, user[0]): # db와 비교
         raise HTTPException(
-            status_code=ER.UNAUTHORIZED,
+            status_code=401,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
