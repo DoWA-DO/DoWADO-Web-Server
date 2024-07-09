@@ -4,10 +4,7 @@
 API 개발 시 참고 : 프론트엔드에서 http 엔드포인트를 통해 호출되는 메서드
 """
 # 기본적으로 추가
-from typing import Annotated
-from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
-from src.core import status
 from src.core.status import Status, SU, ER
 import logging
 from datetime import timedelta, datetime
@@ -33,7 +30,6 @@ ALGORITHM = "HS256"
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/login", tags=["로그인"])
 
-# 라우터 추가 시 현재는 src.api.v1.__init__.py에 생성하려는 라우터 추가해줘야 함.(수정 예정)
 # Login
 @router.post(
     "/", 
@@ -45,7 +41,7 @@ router = APIRouter(prefix="/login", tags=["로그인"])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
                            db: AsyncSession = Depends(get_db)):
     # check user and password
-    user = await login_dao.get_user(db, form_data.username) # db에서 사용자 정보 가져옴
+    user = await login_dao.get_user(db, form_data.username) # db에서 사용자 정보 가져옴 (list)
     if not user or not pwd_context.verify(form_data.password, user[0]): # db와 비교
         raise HTTPException(
             status_code=401,

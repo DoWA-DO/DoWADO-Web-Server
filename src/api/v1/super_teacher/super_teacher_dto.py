@@ -1,7 +1,8 @@
+# super_teacher_dto.py
+
 # 기본적으로 추가
-from typing import Optional, Annotated
-from datetime import datetime, timezone
-from fastapi import Depends, Form, Path
+from typing import Annotated
+from fastapi import Form
 from pydantic import Field
 from src.database.dto import BaseDTO
 from typing import Union

@@ -4,25 +4,19 @@
 API 개발 시 참고 : 프론트엔드에서 http 엔드포인트를 통해 호출되는 메서드
 """
 # 기본적으로 추가
-from typing import Annotated
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
-from src.core import status
 from src.core.status import Status, SU, ER
 import logging
-from datetime import timedelta, datetime
 
 # (db 세션 관련)이후 삭제 예정, 개발을 위해 일단 임시로 추가
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.session import get_db
-from fastapi.security import OAuth2PasswordRequestForm
-from jose import jwt
 
 # 호출할 모듈 추가
 from src.api.v1.super_teacher.super_teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
-from src.api.v1.super_teacher.super_teacher_dao import get_existing_user, pwd_context
+from src.api.v1.super_teacher.super_teacher_dao import get_existing_user
 from src.api.v1.super_teacher import super_teacher_service
-from src.api.v1.super_teacher import super_teacher_dto, super_teacher_dao
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 # secret key 생성 : openssl rand -hex 32

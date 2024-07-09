@@ -1,3 +1,5 @@
+#chat_control.py
+
 """
 API 개발 시 참고 : 프론트엔드에서 http 엔드포인트를 통해 호출되는 메서드
 """
@@ -8,7 +10,6 @@ from fastapi import APIRouter, Depends
 from src.core.status import Status, SU, ER
 import logging
 
-# (db 세션 관련)이후 삭제 예정, 개발을 위해 일단 임시로 추가
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.session import get_db
 
@@ -30,7 +31,7 @@ router = APIRouter(prefix="/chat", tags=["채팅"])
     response_model=list[ReadChatInfo],
     responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
 )
-# 함수명 get, post, update, delete 중 1택 + 목적에 맞게 이름 작성
+
 async def get_chat(
     db: AsyncSession = Depends(get_db),
     current_user: Teacher = Depends(get_current_user)
@@ -84,7 +85,7 @@ async def update_chat(
     responses=Status.docs(SU.SUCCESS, ER.DUPLICATE_RECORD),
 )
 async def delete_chat(
-    chat_name: str, # JWT 토큰에서 id 가져오는 방식으로 변경, 임시조치
+    chat_name: str, 
     current_user: Teacher = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):

@@ -1,12 +1,5 @@
-# 기본적으로 추가
-from typing import Optional, Annotated
-from datetime import datetime, timezone
-from fastapi import Depends, Form, Path
-from pydantic import Field
+# login_dto.py
 from src.database.dto import BaseDTO
-from typing import Union
-from pydantic import field_validator, EmailStr
-from pydantic_core.core_schema import FieldValidationInfo
 
 # - 개발하려는 API의 목적에 맞게 클래스 작성
 # - 중복되는 부분은 상속받아서 중복 코드 최소화하기
