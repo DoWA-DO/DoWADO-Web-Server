@@ -31,7 +31,7 @@ ALGORITHM = "HS256"
 
 # 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/login", tags=["login"])
+router = APIRouter(prefix="/login", tags=["로그인"])
 
 # 라우터 추가 시 현재는 src.api.v1.__init__.py에 생성하려는 라우터 추가해줘야 함.(수정 예정)
 # Login
