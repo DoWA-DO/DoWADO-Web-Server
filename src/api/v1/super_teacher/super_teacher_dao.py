@@ -102,18 +102,4 @@ async def verify_teacher(teacher_email: str, db: AsyncSession) -> bool:
         # 인증 실패 시 예외 처리
         raise HTTPException(status_code=500, detail=f"Failed to verify teacher account: {e}")
 
-async def get_user(db: AsyncSession, username: str):
-    """
-    Fetch the user from the database and return the teacher password.
-    """
-    result = await db.execute(select(Teacher).filter(Teacher.teacher_email == username).limit(1))
-    user = result.scalars().first()
-    #hashed_password = [teacher.teacher_password for teacher in user]
-    
-    if user:
-        logging.info(f"Teacher info: {user.teacher_email, user.teacher_password}")
-        return user.teacher_password, user.teacher_email
-    else:
-        return None, None
-
 
