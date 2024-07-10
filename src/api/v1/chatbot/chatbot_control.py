@@ -34,7 +34,7 @@ async def create_chat(
 @router.get(
     "/read",
     summary="채팅 내역 조회",
-    description="- 현재 로그인된 사용자의 채팅 내역 조회, 없으면 [] 출력",
+    description="- 모든 사용자의 채팅 내역 조회, 없으면 [] 출력",
     response_model=List[ChatCreateResponse],
     responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
 )

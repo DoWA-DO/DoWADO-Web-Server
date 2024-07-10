@@ -1,6 +1,6 @@
 #chatbot_dao.py
 
-from sqlalchemy import delete
+from sqlalchemy import delete, func, text
 from sqlalchemy.sql.expression import select
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,12 +33,12 @@ class ChatDAO:
     async def get_chat_history(self, chat_user: str) -> List[Chat]:
         chats = await self.db.execute(
             select(Chat)
-            .where(Chat.chat_user == chat_user)
+            #.where(Chat.chat_user == chat_user)
             .order_by(Chat.created_at.desc())
         )
         return chats.scalars().all()
     
     #Delete
     async def delete_chats_by_user(self, chat_user: str) -> None:
-        await self.db.execute(delete(Chat).where(Chat.chat_user == chat_user))
+        await self.db.execute(delete(Chat).where(Chat.chat_user == chat_user)) # delete
         await self.db.commit()
