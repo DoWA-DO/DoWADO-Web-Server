@@ -26,8 +26,8 @@ class UpdateTeacher(BaseDTO):
     teacher_auth: Annotated[Union[bool, None], Form(description="메일 인증 여부")]
     # 선생 학교/반을 입력시켜 선생마다 학생 db 관리 쉽게 카테고리화 (ex. 20100 2학년 1반 선생님) 
     # 선생마다 학생 table 생성하면 자원 낭비 아닌가 싶어서 위에처럼 선생은 00번에 저장
-    teacher_grade: Annotated[Union[int, None], Form(description="학년")] 
-    teacher_class: Annotated[Union[int, None], Form(description="반")] 
+    #teacher_grade: Annotated[Union[int, None], Form(description="학년")] 
+    #teacher_class: Annotated[Union[int, None], Form(description="반")] 
 
 class ReadTeacherInfo(keyTeacher,UpdateTeacher):
     ...

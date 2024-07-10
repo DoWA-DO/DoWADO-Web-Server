@@ -24,6 +24,7 @@ class Teacher(Base):
     teacher_password = Column(String, nullable=False) # 교원 비밀번호
     teacher_name = Column(String, unique=True, nullable=False) # 교원 이름
     teacher_schoolname = Column(String, nullable=False) # 교원 학교 이름
+    #teacher_num = Column(int, nullable=False) # 교원 학년/반/00
     #teacher_picture은 기본적으로는 False로 제공, 이후 S3에 해당 계정의 사진이 올라갔는지를 확인하고 True로 바꾸는 로직 필요?
     #teacher_picture = True면 aws S3에 저장된 사진을 불러오는 로직 필요할것 으로 예상함. - TODO
     #teacher_picture = Column(Boolean, default = False, nullable = False)
