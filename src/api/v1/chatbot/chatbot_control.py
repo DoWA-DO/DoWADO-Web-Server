@@ -52,3 +52,21 @@ async def read_chat(
         created_at=chat.created_at
     ) for chat in chats
     ]
+    
+# Delete
+@router.delete(
+    "/delete",
+    summary="채팅 내역 삭제",
+    description="- 현재 로그인된 사용자의 채팅 내역 전부 삭제",
+    responses=Status.docs(SU.SUCCESS, ER.INVALID_REQUEST)
+)
+async def delete_chat(
+    current_user: str = Depends(get_current_user),
+    chat_service: ChatService = Depends(ChatService)
+):
+    try:
+        await chat_service.delete_chat(current_user)
+        return {"detail": "Chats deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting chats: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")

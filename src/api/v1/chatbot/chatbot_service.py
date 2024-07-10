@@ -22,3 +22,6 @@ class ChatService:
             return chats
         except Exception as e:
             raise e
+        
+    async def delete_chat(self, user_name: str) -> None:
+        return await self.chat_dao.delete_chats_by_user(user_name)
