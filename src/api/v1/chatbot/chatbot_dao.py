@@ -12,6 +12,7 @@ class ChatDAO:
     def __init__(self, db: AsyncSession):
         self.db = db
 
+    #Create
     async def create_chat(self, user_name: str, chat_request: ChatCreateRequest) -> ChatCreateResponse:
         chat = Chat(
             chat_text=chat_request.message,
@@ -28,6 +29,7 @@ class ChatDAO:
             created_at=chat.created_at
         )
         
+    #Read    
     async def get_chat_history(self, chat_user: str) -> List[Chat]:
         chats = await self.db.execute(
             select(Chat)
@@ -36,6 +38,7 @@ class ChatDAO:
         )
         return chats.scalars().all()
     
+    #Delete
     async def delete_chats_by_user(self, chat_user: str) -> None:
         await self.db.execute(delete(Chat).where(Chat.chat_user == chat_user))
         await self.db.commit()
