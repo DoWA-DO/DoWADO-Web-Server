@@ -1,3 +1,7 @@
+#chatbot_dao.py
+
+from sqlalchemy.sql.expression import select
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.v1.chatbot.chatbot_dto import ChatCreateRequest, ChatCreateResponse
 from src.database.model import Chat
@@ -22,4 +26,11 @@ class ChatDAO:
             user_name=chat.chat_user,
             created_at=chat.created_at
         )
-
+        
+    async def get_chat_history(self, chat_user: str) -> List[Chat]:
+        chats = await self.db.execute(
+            select(Chat)
+            .where(Chat.chat_user == chat_user)
+            .order_by(Chat.created_at.desc())
+        )
+        return chats.scalars().all()
