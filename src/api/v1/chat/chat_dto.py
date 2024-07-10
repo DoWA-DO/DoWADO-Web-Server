@@ -20,18 +20,9 @@ from typing import Union
 #   1) Read, Create, Update, Delete 중 1택
 #   2) 목적에 따라 클래스명 원하는 대로 선언(컨벤션에 맞춰 작성할 것, 대소문자 유의)
 
-class keyChat(BaseDTO):
-    chat_name: Annotated[Union[str, None], Form(description="학생 이름")]
-"""
-class UpdateChat(BaseDTO):
-    chat_text: Annotated[Union[str, None], Form(description="대화 내용")] = 'text1'
-    chat_job: Annotated[Union[str, None], Form(description="직업")] = 'job1'
-    chat_date: Annotated[datetime, Field(description="대화 날짜")] 
-"""
-class CreateChat(keyChat):
-    chat_text: Annotated[Union[str, None], Form(description="대화 내용")] = 'text1'
-    chat_job: Annotated[Union[str, None], Form(description="직업")] = 'job1'
-    chat_date: Annotated[datetime, Field(description="대화 날짜")]
+
+class CreateChat(BaseDTO):
+    chat_text: Annotated[Union[str, None], Form(description="대화 내용")] 
 
 class ReadChatInfo(CreateChat):
-    ...
+    chat_user:str

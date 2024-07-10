@@ -32,9 +32,9 @@ router = APIRouter(prefix="/chat", tags=["채팅"])
     responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
 )
 
-async def get_chat(
+async def read_chat(
     db: AsyncSession = Depends(get_db),
-    current_user: Teacher = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
     ):
     # 개발 중 logging 사용하고 싶을 때 이 코드 추가
     logger.info("----------전체 대화 이력 조회----------")
@@ -45,14 +45,14 @@ async def get_chat(
 # Create
 @router.post(
     "/create",
-    summary="입력 받은 데이터를 데이터베이스에 추가",
+    summary="로그인된 사용자의 이름과 채팅 내용을 DB에 추가",
     description="- Text-Form / Text-Form / Text-Form / date-Form",
     responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
 )
 async def create_chat(
     chat: Optional[CreateChat],
     db: AsyncSession = Depends(get_db),
-    current_user: Teacher = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     logger.info("----------신규 대화 생성----------")
     await chat_service.create_chat(chat, db, current_user)
@@ -84,7 +84,7 @@ async def update_chat(
     description="- username이 일치하는 데이터 삭제",
     responses=Status.docs(SU.SUCCESS, ER.DUPLICATE_RECORD),
 )
-async def delete_chat(
+async def del_chat(
     chat_name: str, 
     current_user: Teacher = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)

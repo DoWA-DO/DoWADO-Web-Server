@@ -10,21 +10,28 @@ from sqlalchemy.orm import joinedload, query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.v1.chat.chat_dto import ReadChatInfo, CreateChat
-from src.database.model import Chat
+from src.database.model import Chat, Teacher
 from src.database.session import get_db
-
+from src.api.v1.login.login_control import get_current_user
+import logging
 
 # Read
-async def get_chat(db: AsyncSession) -> list[ReadChatInfo]:  # = Depends(get_db)
-    result = await db.execute(select(Chat))
+async def get_chat(db: AsyncSession, current_user: Teacher = Depends(get_current_user)) -> list[ReadChatInfo]:  # = Depends(get_db)
+    result = await db.execute(select(Chat).filter(Chat.chat_user == current_user))
     chat_info = result.scalars().all()
-    return chat_info
+    return [ReadChatInfo.from_orm(chat) for chat in chat_info]
 
 
 # Create
-async def create_chat(chat: CreateChat, db: AsyncSession) -> None:
-    await db.execute(insert(Chat).values(chat.dict())) # db:Chat table:chat
-    await db.commit() # 자동으로 commit되게 설정 변경 필요
+async def create_chat(chat: CreateChat, db: AsyncSession, current_user: Teacher = Depends(get_current_user)) -> None:
+    logging.info(f"current_user info: {current_user}")
+    chat_data = chat.dict()
+    chat_data["chat_user"] = current_user
+    
+    new_chat = Chat(**chat_data)
+    db.add(new_chat)
+    await db.commit()
+    await db.refresh(new_chat)
     
 """
 # Update
@@ -34,7 +41,8 @@ async def update_chat(chat_name: str, chat_info: UpdateChat, db: AsyncSession) -
 """    
 
 # Delete
-async def delete_chat(chat_name: str, db: AsyncSession) -> None:
-    await db.execute(delete(Chat).where(Chat.chat_name == chat_name))
+# 최근 대화 내역 1개 삭제 or 리셋 (나중에 구현)
+async def delete_chat(db: AsyncSession, current_user: Teacher = Depends(get_current_user)) -> None:
+    await db.execute(delete(Chat).where(Chat.chat_user == current_user))
     await db.commit()
     
