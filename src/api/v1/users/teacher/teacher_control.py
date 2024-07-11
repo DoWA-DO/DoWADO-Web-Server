@@ -1,4 +1,4 @@
-#super_teacher_control.py
+#teacher_control.py
 
 """
 API 개발 시 참고 : 프론트엔드에서 http 엔드포인트를 통해 호출되는 메서드
@@ -14,9 +14,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.session import get_db
 
 # 호출할 모듈 추가
-from src.api.v1.super_teacher.super_teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
-from src.api.v1.super_teacher.super_teacher_dao import get_existing_user
-from src.api.v1.super_teacher import super_teacher_service
+from src.api.v1.users.teacher.teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
+from src.api.v1.users.teacher.teacher_dao import get_existing_user
+from src.api.v1.users.teacher import teacher_service
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 # secret key 생성 : openssl rand -hex 32
@@ -42,7 +42,7 @@ router = APIRouter(prefix="/teacher", tags=["교원 관리"])
 async def get_teacher(db: AsyncSession = Depends(get_db)):
     # 개발 중 logging 사용하고 싶을 때 이 코드 추가
     logger.info("----------전체 교원 목록 조회----------")
-    teacher_info = await super_teacher_service.get_teacher(db)
+    teacher_info = await teacher_service.get_teacher(db)
     return teacher_info
 
 
@@ -65,7 +65,7 @@ async def create_teacher(
     if existing_teacher:
         raise HTTPException(status_code=409, detail=ER.DUPLICATE_RECORD)
     
-    await super_teacher_service.create_teacher(teacher, db)
+    await teacher_service.create_teacher(teacher, db)
     return SU.CREATED
 
 # Update
@@ -81,7 +81,7 @@ async def update_teacher(
     db: AsyncSession = Depends(get_db)
 ):
     logger.info("----------기존 교원 수정----------")
-    await super_teacher_service.update_teacher(teacher_email, teacher_info, db)
+    await teacher_service.update_teacher(teacher_email, teacher_info, db)
     return SU.SUCCESS
 
 
@@ -96,5 +96,5 @@ async def delete_teacher(
     teacher_email: str, # JWT 토큰에서 id 가져오는 방식으로 변경, 임시조치
     db: AsyncSession = Depends(get_db)
 ):
-    await super_teacher_service.delete_teacher(teacher_email, db)
+    await teacher_service.delete_teacher(teacher_email, db)
     return SU.SUCCESS
