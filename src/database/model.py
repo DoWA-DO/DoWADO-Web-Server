@@ -38,10 +38,21 @@ class UserTeacher(Base):
 class ChatLog(Base):
     __tablename__ = "chat_log"
     
-    id = Column(Integer, primary_key=True, autoincrement=True) # 대화 고유 번호
+    id = Column(Integer, primary_key=True, autoincrement=True) # 채팅 고유 번호
     chat_student_email  = Column(Text, ForeignKey('user_student.student_email'), nullable=False) # 학생 메일
     chat_content  = Column(JSONB) # 대화 내용 (JSON 데이터 저장)
     chat_date = Column(DateTime, default=func.now()) # 대화 종료 일시 자동 기록
     chat_status =  Column(Integer, default=0) # 리포트 생성 여부 (0:미생성, 1:생성)
     
     student = relationship("UserStudent", backref="chat_logs")
+    
+# 레포트 테이블
+class Report(Base):
+    __tablename__ = "report"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True) # 레포트 고유 번호
+    chat_log_id =  Column(Integer, ForeignKey('chat_log.id'), on_delete='CASCADE') # 채팅 고유 번호
+    report_1st = Column(String, nullable=False) # 직무 1순위
+    report_2nd =Column(String, nullable=False) # 직무 2순위
+    report_3rd = Column(String, nullable=False) # 직무 3순위
+    report_info =  Column(Text, nullable=False) # 직업 설명
