@@ -2,7 +2,6 @@
 
 from typing import Annotated, Union
 from pydantic import BaseModel, EmailStr, Field, validator
-from typing_extensions import NotRequired
 
 class KeyTeacher(BaseModel):
     teacher_email: Annotated[Union[EmailStr, None], Field(description="교원 메일")]
@@ -20,10 +19,16 @@ class ReadTeacherInfo(KeyTeacher, UpdateTeacher):
 class CreateTeacher(KeyTeacher, UpdateTeacher):
     teacher_password2: Annotated[Union[str, None], Field(description="교원 비밀번호 확인")]
 
-    @validator('teacher_email', 'teacher_password', 'teacher_password2', 'teacher_name', 'teacher_school', 'teacher_grade', 'teacher_class')
+    @validator('teacher_email', 'teacher_password', 'teacher_password2', 'teacher_name', 'teacher_school')
     def not_empty(cls, v):
-        if not v or not v.strip():
+        if not v or not str(v).strip():
             raise ValueError('빈 값은 허용되지 않습니다.')
+        return v
+
+    @validator('teacher_grade', 'teacher_class')
+    def check_integer(cls, v):
+        if v is not None and not isinstance(v, int):
+            raise ValueError('정수 값이 필요합니다.')
         return v
 
     @validator('teacher_password2')

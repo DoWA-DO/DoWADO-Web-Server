@@ -18,7 +18,7 @@ from jose import JWTError, jwt
 
 # 호출할 모듈 추가
 
-from src.api.v1.super_teacher.super_teacher_dao import pwd_context
+from src.api.v1.users.teacher.teacher_dao import pwd_context
 from src.api.v1.login import login_dto, login_dao
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24

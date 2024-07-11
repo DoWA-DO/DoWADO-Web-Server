@@ -25,11 +25,9 @@ ALGORITHM = "HS256"
 
 # 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/teacher", tags=["교원 관리"])
+router = APIRouter(prefix="/teacher", tags=["교직원"])
 
-# 라우터 추가 시 현재는 src.api.v1.__init__.py에 생성하려는 라우터 추가해줘야 함.(수정 예정)
-
-
+'''
 # Read
 @router.get(
     "/read",
@@ -44,7 +42,7 @@ async def get_teacher(db: AsyncSession = Depends(get_db)):
     logger.info("----------전체 교원 목록 조회----------")
     teacher_info = await teacher_service.get_teacher(db)
     return teacher_info
-
+'''
 
 # Create
 @router.post(

@@ -4,8 +4,8 @@ from sqlalchemy import delete, func, text
 from sqlalchemy.sql.expression import select
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.api.v1.chatbot.chatbot_dto import ChatCreateRequest, ChatCreateResponse
-from src.database.model import Chat
+from src.api.v1.chat.chatbot_dto import ChatCreateRequest, ChatCreateResponse
+from src.database.model import ChatLog
 from datetime import datetime
 
 class ChatDAO:
@@ -14,7 +14,7 @@ class ChatDAO:
 
     #Create
     async def create_chat(self, user_name: str, chat_request: ChatCreateRequest) -> ChatCreateResponse:
-        chat = Chat(
+        chat = ChatLog(
             chat_text=chat_request.message,
             chat_user=user_name,
             created_at=datetime.now().replace(microsecond=0)
@@ -30,15 +30,15 @@ class ChatDAO:
         )
         
     #Read    
-    async def get_chat_history(self, chat_user: str) -> List[Chat]:
+    async def get_chat_history(self) -> List[ChatLog]:
         chats = await self.db.execute(
-            select(Chat)
+            select(ChatLog)
             #.where(Chat.chat_user == chat_user)
-            .order_by(Chat.created_at.desc())
+            .order_by(ChatLog.chat_date.desc())
         )
         return chats.scalars().all()
     
     #Delete
-    async def delete_chats_by_user(self, chat_user: str) -> None:
-        await self.db.execute(delete(Chat).where(Chat.chat_user == chat_user)) # delete
+    async def delete_chats_by_user(self, chat_student_email: str) -> None:
+        await self.db.execute(delete(ChatLog).where(ChatLog.chat_student_email == chat_student_email)) # delete
         await self.db.commit()

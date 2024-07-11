@@ -4,8 +4,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from src.core.status import Status, SU, ER
 from src.api.v1.login.login_control import get_current_user
-from src.api.v1.chatbot.chatbot_dto import ChatCreateRequest, ChatCreateResponse
-from src.api.v1.chatbot.chatbot_service import ChatService
+from src.api.v1.chat.chatbot_dto import ChatCreateRequest, ChatCreateResponse
+from src.api.v1.chat.chatbot_service import ChatService
 import logging
 
 logger = logging.getLogger(__name__)

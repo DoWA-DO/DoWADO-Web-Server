@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload, query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.model import Teacher
+from src.database.model import UserTeacher
 from src.database.session import get_db
 from passlib.context import CryptContext
 
@@ -20,7 +20,7 @@ async def get_user(db: AsyncSession, username: str):
     """
     Fetch the user from the database and return the teacher password.
     """
-    result = await db.execute(select(Teacher).filter(Teacher.teacher_email == username).limit(1))
+    result = await db.execute(select(UserTeacher).filter(UserTeacher.teacher_email == username).limit(1))
     user = result.scalars().first()
     #hashed_password = [teacher.teacher_password for teacher in user]
     

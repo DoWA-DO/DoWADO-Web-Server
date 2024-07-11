@@ -31,9 +31,11 @@ async def create_teacher(teacher: CreateTeacher, db: AsyncSession) -> None:
     '''
     db_user = UserTeacher(teacher_name=teacher.teacher_name,
                    teacher_password=pwd_context.hash(teacher.teacher_password),  # 해시화
-                   teacher_auth=True,
                    teacher_email=teacher.teacher_email,
-                   teacher_school=teacher.teacher_school)
+                   teacher_school=teacher.teacher_school,
+                   teacher_grade=teacher.teacher_grade,
+                   teacher_class=teacher.teacher_class,
+                   )
     db.add(db_user)
     await db.commit()
     

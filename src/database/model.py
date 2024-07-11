@@ -12,7 +12,7 @@ Base = declarative_base()
 class UserStudent(Base):
     __tablename__ = "user_student"
     
-    student_email = Column(Text, primarsy_key=True, unique=True) # 학생 메일
+    student_email = Column(Text, primary_key=True, unique=True) # 학생 메일
     student_name = Column(String, unique=True, nullable=False) # 학생 이름
     student_school = Column(String, nullable=False) # 학생 학교 이름
     student_password = Column(String, nullable=False) # 학생 비밀번호
@@ -20,8 +20,6 @@ class UserStudent(Base):
     student_class = Column(Integer, nullable=False) # 학생 반
     student_number = Column(Integer, nullable=False) # 학생 번호
     student_teacher_email = Column(Text, ForeignKey('user_teacher.teacher_email'), on_delete='CASCADE') # 담당 교사 이메일
-    
-    teacher = relationship("UserTeacher", backref="students")
     
 # 교원 테이블    
 class UserTeacher(Base):
@@ -44,6 +42,6 @@ class ChatLog(Base):
     chat_student_email  = Column(Text, ForeignKey('user_student.student_email'), nullable=False) # 학생 메일
     chat_content  = Column(JSONB) # 대화 내용 (JSON 데이터 저장)
     chat_date = Column(DateTime, default=func.now()) # 대화 종료 일시 자동 기록
-    chat_status =  Column(Integer, nullable=False) # 리포트 생성 여부 (0:미생성, 1:생성)
+    chat_status =  Column(Integer, default=0) # 리포트 생성 여부 (0:미생성, 1:생성)
     
     student = relationship("UserStudent", backref="chat_logs")
