@@ -79,7 +79,7 @@ async def get_current_student(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return username
 
-@router.get("/student", response_model=login_dto.Token)
+@router.get("/student/info", response_model=login_dto.Token)
 async def read_users_me(current_user: str = Security(get_current_student)):
     return {
         "access_token": "example_access_token",
@@ -137,7 +137,7 @@ async def get_current_teacher(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return username
 
-@router.get("/teacher", response_model=login_dto.Token)
+@router.get("/teacher/info", response_model=login_dto.Token)
 async def read_users_me(current_user: str = Security(get_current_teacher)):
     return {
         "access_token": "example_access_token",
