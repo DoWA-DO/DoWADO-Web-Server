@@ -71,3 +71,5 @@ async def delete_chat(
     except Exception as e:
         logger.error(f"Error deleting chats: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+    
+    

@@ -34,12 +34,10 @@ STUDENT_SCOPE = "student"
 TEACHER_SCOPE = "teacher"
 
 # OAuth2 인증 설정
+
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/login/token",
-    scopes={
-        STUDENT_SCOPE: "Access as student",
-        TEACHER_SCOPE: "Access as teacher",
-    },
+    tokenUrl="token",
+    scopes={"student": "Access as student", "teacher": "Access as teacher"},
 )
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -53,37 +51,23 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         scope: str = payload.get("scope")
-        if username is None or scope is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-
-    if scope == STUDENT_SCOPE:
-        return {"username": username, "scope": STUDENT_SCOPE}
-    elif scope == TEACHER_SCOPE:
-        return {"username": username, "scope": TEACHER_SCOPE}
-    else:
-        raise credentials_exception
-
-async def get_current_user_by_scope(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        scope: str = payload.get("scope")
-        if username is None or scope is None:
+        if username is None or scope is None or scope != STUDENT_SCOPE:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
     return {"username": username, "scope": scope}
 
-# 학생 로그인
+async def authenticate_user(username: str, password: str, db: AsyncSession):
+    user = await login_dao.get_user(db, username)
+    if not user or not pwd_context.verify(password, user[0]):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user[1]
+
 @router.post(
     "/student",
     summary="학생 로그인",
@@ -91,33 +75,31 @@ async def get_current_user_by_scope(token: str = Depends(oauth2_scheme)):
     response_model=login_dto.Token,
     responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
 )
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
-                                db: AsyncSession = Depends(get_db)):
-    # check user and password
-    user = await login_dao.get_user(db, form_data.username)
-    if not user or not pwd_context.verify(form_data.password, user[0]):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db),
+):
+    username = await authenticate_user(form_data.username, form_data.password, db)
+    if not username:
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    logging.info("비교 여부: %s", pwd_context.verify(form_data.password, user[0]))
 
-    # make access token
     data = {
-        "sub": user[1],
+        "sub": username,
         "scope": STUDENT_SCOPE,
-        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     }
     access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     logger.info("----------로그인----------")
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "username": user[1]
+        "username": username,
     }
 
-# 선생님 로그인
 @router.post(
     "/teacher",
     summary="선생님 로그인",
@@ -125,41 +107,35 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     response_model=login_dto.Token,
     responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
 )
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
-                                db: AsyncSession = Depends(get_db)):
-    # check user and password
-    user = await login_dao.get_user(db, form_data.username)
-    if not user or not pwd_context.verify(form_data.password, user[0]):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db),
+):
+    username = await authenticate_user(form_data.username, form_data.password, db)
+    if not username:
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    logging.info("비교 여부: %s", pwd_context.verify(form_data.password, user[0]))
 
-    # make access token
     data = {
-        "sub": user[1],
+        "sub": username,
         "scope": TEACHER_SCOPE,
-        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     }
     access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     logger.info("----------로그인----------")
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "username": user[1]
+        "username": username,
     }
 
-@router.get("/protected", response_model=login_dto.Token)
-async def get_current_user_token(current_user: dict = Depends(get_current_user_by_scope)):
-    if current_user["scope"] == STUDENT_SCOPE:
-        return {
-            "access_token": "example_access_token",
-            "token_type": "bearer",
-            "username": current_user["username"]
-        }
-    elif current_user["scope"] == TEACHER_SCOPE:
+async def get_protected_response(
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user:
         return {
             "access_token": "example_access_token",
             "token_type": "bearer",
@@ -167,3 +143,8 @@ async def get_current_user_token(current_user: dict = Depends(get_current_user_b
         }
     else:
         raise HTTPException(status_code=403, detail="Forbidden")
+    
+
+@router.get("/protected")
+async def get_protected_data(response: dict = Depends(get_protected_response)):
+    return response
