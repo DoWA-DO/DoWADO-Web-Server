@@ -1,0 +1,62 @@
+# student_dao.py
+
+"""
+API 개발 시 참고 : 비즈니스 로직 작성, service에서 호출
+"""
+# 기본적으로 추가
+
+from typing import Optional
+from fastapi import HTTPException
+from sqlalchemy import select, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.api.v1.users.student.student_dto import ReadStudentInfo, CreateStudent, UpdateStudent
+from src.database.model import UserStudent
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+# Read
+async def get_student(db: AsyncSession) -> list[ReadStudentInfo]:  # = Depends(get_db)
+    result = await db.execute(select(UserStudent))
+    student_info = result.scalars().all()
+    return student_info
+
+# Create
+async def create_student(student: CreateStudent, db: AsyncSession) -> None:
+    '''
+    if not await verify_email(teacher.teacher_email): 
+        raise ValueError("Unauthorized to create a teacher") # 인증 실패
+    '''
+    db_user = UserStudent(student_name=student.student_name,
+                   student_password=pwd_context.hash(student.student_password),  # 해시화
+                   student_email=student.student_email,
+                   student_school=student.student_school,
+                   student_grade=student.student_grade,
+                   student_class=student.student_class,
+                   student_number=student.student_number,
+                   student_teacher_email=student.student_teacher_email
+                   )
+    db.add(db_user)
+    await db.commit()
+    
+async def get_existing_user(db: AsyncSession, teacher: CreateStudent) -> Optional[UserStudent]: # 중복 예외 처리
+    query = select(UserStudent).where(
+        (UserStudent.student_name == teacher.student_name) |
+        (UserStudent.student_email == teacher.student_email)
+    )
+    result = await db.execute(query)
+    existing_student = result.scalars().first()
+    return existing_student
+        
+# Update
+async def update_student(student_email: str, student_info: UpdateStudent, db: AsyncSession) -> None:
+    await db.execute(update(UserStudent).filter(UserStudent.student_email==student_email).values(student_info.dict()))
+    await db.commit()
+    
+
+# Delete
+async def delete_student(student_email: str, db: AsyncSession) -> None:
+    await db.execute(delete(UserStudent).where(UserStudent.student_email == student_email))
+    await db.commit()
