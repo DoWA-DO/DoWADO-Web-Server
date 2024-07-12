@@ -62,7 +62,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         "username": user[1]
     }
     
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/student")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -79,7 +79,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return username
 
-@router.get("/me", response_model=login_dto.Token)
+@router.get("/student", response_model=login_dto.Token)
 async def read_users_me(current_user: str = Security(get_current_user)):
     return {
         "access_token": "example_access_token",
@@ -120,7 +120,7 @@ async def login_teacher_for_access_token(form_data: OAuth2PasswordRequestForm = 
         "username": user[1]
     }
     
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/teacher")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -136,3 +136,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise credentials_exception
     return username
+
+@router.get("/teacher", response_model=login_dto.Token)
+async def read_users_me(current_user: str = Security(get_current_user)):
+    return {
+        "access_token": "example_access_token",
+        "token_type": "bearer",
+        "username": current_user
+    }
