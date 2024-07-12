@@ -20,6 +20,8 @@ class Settings:
 
 settings = Settings()
 
+# secret key 생성 : openssl rand -hex 32
+SECRET_KEY = "8a4bab952b4e4317af926571fb93f1820f6929ba9c7c70b7969b1a01ec92757f"
 
 LOGGING_CONFIG = {
     "version": 1,
