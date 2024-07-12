@@ -63,7 +63,7 @@ async def create_student(
     if existing_student:
         raise HTTPException(status_code=409, detail=ER.DUPLICATE_RECORD)
     
-    await student_service.d(student, db)
+    await student_service.create_student(student, db)
     return SU.CREATED
 
 # Update
