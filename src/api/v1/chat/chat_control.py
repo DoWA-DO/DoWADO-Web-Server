@@ -4,7 +4,7 @@
 from typing import Annotated
 from typing import Optional
 from fastapi import APIRouter, Depends
-from src.core.status import Status, SU, ER
+from src.config.status import Status, SU, ER
 import logging
 
 # (db 세션 관련)이후 삭제 예정, 개발을 위해 일단 임시로 추가
