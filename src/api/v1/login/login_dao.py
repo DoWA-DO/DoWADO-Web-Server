@@ -9,29 +9,21 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.model import UserTeacher, UserStudent
+from src.api.v1.users.student.student_dao import get_student
+from src.api.v1.users.teacher.teacher_dao import get_teacher
 
-async def get_teacher(db: AsyncSession, username: str):
+async def get_user(db: AsyncSession, username: str):
     """
-    Fetch the user from the database and return the teacher or student password.
+    사용자 정보 조회
     """
-    teacher_result = await db.execute(select(UserTeacher).filter(UserTeacher.teacher_email == username).limit(1))
-    teacher = teacher_result.scalars().first()
-
-    if teacher:
-        logging.info(f"Teacher info: {teacher.teacher_email, teacher.teacher_password}")
-        return teacher.teacher_password, teacher.teacher_email, "teacher"
-    else:
-        return None, None, None
-    
-async def get_student(db: AsyncSession, username: str):
-    """
-    Fetch the user from the database and return the teacher or student password.
-    """
-    student_result = await db.execute(select(UserStudent).filter(UserStudent.student_email == username).limit(1))
-    student = student_result.scalars().first()
-
+    # 학생 정보 조회
+    student = await get_student(db, username)
     if student:
-        logging.info(f"Student info: {student.student_email, student.student_password}")
-        return student.student_password, student.student_email, "student"
-    else:
-        return None, None, None
+        return (student.hashed_password, student.email)
+
+    # 선생님 정보 조회
+    teacher = await get_teacher(db, username)
+    if teacher:
+        return (teacher.hashed_password, teacher.email)
+
+    return None

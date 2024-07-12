@@ -16,13 +16,13 @@ from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-'''
+
 # Read
 async def get_teacher(db: AsyncSession) -> list[ReadTeacherInfo]:  # = Depends(get_db)
     result = await db.execute(select(UserTeacher))
     teacher_info = result.scalars().all()
     return teacher_info
-'''
+
 # Create
 async def create_teacher(teacher: CreateTeacher, db: AsyncSession) -> None:
     '''

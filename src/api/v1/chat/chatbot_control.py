@@ -3,7 +3,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from src.core.status import Status, SU, ER
-from src.api.v1.login.login_control import get_current_student
+from src.api.v1.login.login_control import get_current_user
 from src.api.v1.chat.chatbot_dto import ChatCreateRequest, ChatCreateResponse
 from src.api.v1.chat.chatbot_service import ChatService
 import logging
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/chatbot", tags=["채팅"])
 )
 async def create_chat(
     chat_request: ChatCreateRequest,
-    current_user: str = Depends(get_current_student),
+    current_user: str = Depends(get_current_user),
     chat_service: ChatService = Depends(ChatService)
 ):
     try:
@@ -40,7 +40,7 @@ async def create_chat(
 )
 
 async def read_chat(
-    current_user: str = Depends(get_current_student),
+    current_user: str = Depends(get_current_user),
     chat_service: ChatService = Depends(ChatService)
 ): 
     chats = await chat_service.read_chat(current_user)
@@ -62,7 +62,7 @@ async def read_chat(
     responses=Status.docs(SU.SUCCESS, ER.INVALID_REQUEST)
 )
 async def delete_chat(
-    current_user: str = Depends(get_current_student),
+    current_user: str = Depends(get_current_user),
     chat_service: ChatService = Depends(ChatService)
 ):
     try:

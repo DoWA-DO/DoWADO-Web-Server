@@ -28,30 +28,85 @@ ALGORITHM = "HS256"
 # 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/login", tags=["로그인"])
-    
+
+# Scopes 정의
+STUDENT_SCOPE = "student"
+TEACHER_SCOPE = "teacher"
+
+# OAuth2 인증 설정
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/login/token",
+    scopes={
+        STUDENT_SCOPE: "Access as student",
+        TEACHER_SCOPE: "Access as teacher",
+    },
+)
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        scope: str = payload.get("scope")
+        if username is None or scope is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    if scope == STUDENT_SCOPE:
+        return {"username": username, "scope": STUDENT_SCOPE}
+    elif scope == TEACHER_SCOPE:
+        return {"username": username, "scope": TEACHER_SCOPE}
+    else:
+        raise credentials_exception
+
+async def get_current_user_by_scope(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        scope: str = payload.get("scope")
+        if username is None or scope is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    return {"username": username, "scope": scope}
+
 # 학생 로그인
 @router.post(
-    "/student", 
+    "/student",
     summary="학생 로그인",
     description="- 학생 db에서 일치하는 email, password 확인 후 로그인",
     response_model=login_dto.Token,
     responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
 )
-async def login_student_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
-                           db: AsyncSession = Depends(get_db)):
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
+                                db: AsyncSession = Depends(get_db)):
     # check user and password
-    user = await login_dao.get_student(db, form_data.username) # db에서 사용자 정보 가져옴 (list)
-    if not user or not pwd_context.verify(form_data.password, user[0]): # db와 비교
+    user = await login_dao.get_user(db, form_data.username)
+    if not user or not pwd_context.verify(form_data.password, user[0]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     logging.info("비교 여부: %s", pwd_context.verify(form_data.password, user[0]))
-    
+
     # make access token
     data = {
         "sub": user[1],
+        "scope": STUDENT_SCOPE,
         "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
     access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
@@ -61,32 +116,7 @@ async def login_student_for_access_token(form_data: OAuth2PasswordRequestForm = 
         "token_type": "bearer",
         "username": user[1]
     }
-    
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/student")
 
-async def get_current_student(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    return username
-
-@router.get("/student/info", response_model=login_dto.Token)
-async def read_users_me(current_user: str = Security(get_current_student)):
-    return {
-        "access_token": "example_access_token",
-        "token_type": "bearer",
-        "username": current_user
-    }
-    
 # 선생님 로그인
 @router.post(
     "/teacher",
@@ -95,21 +125,22 @@ async def read_users_me(current_user: str = Security(get_current_student)):
     response_model=login_dto.Token,
     responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
 )
-async def login_teacher_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
-                                         db: AsyncSession = Depends(get_db)):
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
+                                db: AsyncSession = Depends(get_db)):
     # check user and password
-    user = await login_dao.get_teacher(db, form_data.username) # db에서 사용자 정보 가져옴 (list)
-    if not user or not pwd_context.verify(form_data.password, user[0]): # db와 비교
+    user = await login_dao.get_user(db, form_data.username)
+    if not user or not pwd_context.verify(form_data.password, user[0]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     logging.info("비교 여부: %s", pwd_context.verify(form_data.password, user[0]))
-    
+
     # make access token
     data = {
         "sub": user[1],
+        "scope": TEACHER_SCOPE,
         "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
     access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
@@ -119,28 +150,20 @@ async def login_teacher_for_access_token(form_data: OAuth2PasswordRequestForm = 
         "token_type": "bearer",
         "username": user[1]
     }
-    
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/teacher")
 
-async def get_current_teacher(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    return username
-
-@router.get("/teacher/info", response_model=login_dto.Token)
-async def read_users_me(current_user: str = Security(get_current_teacher)):
-    return {
-        "access_token": "example_access_token",
-        "token_type": "bearer",
-        "username": current_user
-    }
+@router.get("/protected", response_model=login_dto.Token)
+async def get_current_user_token(current_user: dict = Depends(get_current_user_by_scope)):
+    if current_user["scope"] == STUDENT_SCOPE:
+        return {
+            "access_token": "example_access_token",
+            "token_type": "bearer",
+            "username": current_user["username"]
+        }
+    elif current_user["scope"] == TEACHER_SCOPE:
+        return {
+            "access_token": "example_access_token",
+            "token_type": "bearer",
+            "username": current_user["username"]
+        }
+    else:
+        raise HTTPException(status_code=403, detail="Forbidden")
