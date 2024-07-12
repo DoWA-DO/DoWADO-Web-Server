@@ -7,10 +7,11 @@ from src.core.event import app_lifespan
 from src.core.error import setup_error_handling
 from src.api.v1 import router as v1_router
 from src.core.config import setup_logging
+from dotenv import load_dotenv
 
 
 setup_logging()  # 로깅 설정
-
+load_dotenv()
 
 app = FastAPI(
     title="Semtle-Web-Server",

@@ -1,7 +1,0 @@
-name: dowado  # 원하는 환경 이름으로 변경하세요
-channels:
-  - conda-forge
-dependencies:
-  - python=3.11.5 
-  - fastapi
-  - uvicorn
