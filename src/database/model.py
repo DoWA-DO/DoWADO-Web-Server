@@ -40,7 +40,7 @@ class ChatLog(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True) # 채팅 고유 번호
     chat_student_email  = Column(Text, ForeignKey('user_student.student_email'), nullable=False) # 학생 메일
-    chat_content  = Column(JSONB) # 대화 내용 (JSON 데이터 저장)
+    chat_content  = Column(Text, nullable=True) # 대화 내용 (JSON 데이터 저장)
     chat_date = Column(DateTime, default=func.now()) # 대화 종료 일시 자동 기록
     chat_status =  Column(Integer, default=0) # 리포트 생성 여부 (0:미생성, 1:생성)
     

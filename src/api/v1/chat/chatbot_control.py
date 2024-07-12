@@ -47,10 +47,10 @@ async def read_chat(
     return [
         ChatCreateResponse(
         id=chat.id,
-        message=chat.chat_content,
-        user_name=chat.chat_student_email,
-        created_at=chat.chat_date,
-        status=chat.chat_status 
+        chat_content=chat.chat_content,
+        chat_student_email=chat.chat_student_email,
+        chat_date=chat.chat_date,
+        chat_status=chat.chat_status 
     ) for chat in chats
     ]
     

@@ -15,26 +15,27 @@ class ChatDAO:
     #Create
     async def create_chat(self, user_name: str, chat_request: ChatCreateRequest) -> ChatCreateResponse:
         chat = ChatLog(
-            chat_text=chat_request.message,
-            chat_user=user_name,
-            created_at=datetime.now().replace(microsecond=0)
+            chat_content=chat_request.chat_content,
+            chat_student_email=user_name,
+            chat_date=datetime.now().replace(microsecond=0),
+            chat_status=0
         )
         self.db.add(chat)
         await self.db.commit()
         await self.db.refresh(chat)
         return ChatCreateResponse(
             id=chat.id,
-            message=chat.chat_content,
-            user_name=chat.chat_student_email,
-            created_at=chat.chat_date,
-            status=chat.chat_status 
+            chat_content=chat.chat_content,
+            chat_student_email=chat.chat_student_email,
+            chat_date=chat.chat_date,
+            chat_status=chat.chat_status 
         )
         
     #Read    
-    async def get_chat_history(self) -> List[ChatLog]:
+    async def get_chat_history(self, chat_user: str) -> List[ChatLog]:
         chats = await self.db.execute(
             select(ChatLog)
-            #.where(Chat.chat_user == chat_user)
+            .where(ChatLog.chat_student_email == chat_user)
             .order_by(ChatLog.chat_date.desc())
         )
         return chats.scalars().all()

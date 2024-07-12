@@ -37,7 +37,7 @@ router = APIRouter(prefix="/login", tags=["로그인"])
     response_model=login_dto.Token,
     responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
 )
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
+async def login_student_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
                            db: AsyncSession = Depends(get_db)):
     # check user and password
     user = await login_dao.get_student(db, form_data.username) # db에서 사용자 정보 가져옴 (list)
