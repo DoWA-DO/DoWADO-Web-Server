@@ -19,7 +19,7 @@ class UserStudent(Base):
     student_grade = Column(Integer, nullable=False) # 학생 학년
     student_class = Column(Integer, nullable=False) # 학생 반
     student_number = Column(Integer, nullable=False) # 학생 번호
-    student_teacher_email = Column(Text, ForeignKey('user_teacher.teacher_email'), on_delete='CASCADE') # 담당 교사 이메일
+    student_teacher_email = Column(Text, ForeignKey('user_teacher.teacher_email')) # 담당 교사 이메일
     
 # 교원 테이블    
 class UserTeacher(Base):
@@ -51,7 +51,7 @@ class Report(Base):
     __tablename__ = "report"
     
     id = Column(Integer, primary_key=True, autoincrement=True) # 레포트 고유 번호
-    chat_log_id =  Column(Integer, ForeignKey('chat_log.id'), on_delete='CASCADE') # 채팅 고유 번호
+    chat_log_id =  Column(Integer, ForeignKey('chat_log.id')) # 채팅 고유 번호
     report_1st = Column(String, nullable=False) # 직무 1순위
     report_2nd =Column(String, nullable=False) # 직무 2순위
     report_3rd = Column(String, nullable=False) # 직무 3순위

@@ -1,13 +1,15 @@
 # chatbot_dto.py
 
+import json
 from pydantic import BaseModel
 from datetime import datetime
 
 class ChatCreateRequest(BaseModel):
-    message: str
+    chat_content: str
 
 class ChatCreateResponse(BaseModel):
     id: int
-    message: str
-    user_name: str
-    created_at: datetime
+    chat_content: str
+    chat_student_email: str
+    chat_date: datetime
+    chat_status: int

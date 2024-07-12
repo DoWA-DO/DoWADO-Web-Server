@@ -64,7 +64,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/student")
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_student(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
@@ -80,7 +80,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return username
 
 @router.get("/student", response_model=login_dto.Token)
-async def read_users_me(current_user: str = Security(get_current_user)):
+async def read_users_me(current_user: str = Security(get_current_student)):
     return {
         "access_token": "example_access_token",
         "token_type": "bearer",
@@ -122,7 +122,7 @@ async def login_teacher_for_access_token(form_data: OAuth2PasswordRequestForm = 
     
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/teacher")
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_teacher(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
@@ -138,7 +138,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return username
 
 @router.get("/teacher", response_model=login_dto.Token)
-async def read_users_me(current_user: str = Security(get_current_user)):
+async def read_users_me(current_user: str = Security(get_current_teacher)):
     return {
         "access_token": "example_access_token",
         "token_type": "bearer",

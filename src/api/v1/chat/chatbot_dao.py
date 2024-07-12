@@ -24,9 +24,10 @@ class ChatDAO:
         await self.db.refresh(chat)
         return ChatCreateResponse(
             id=chat.id,
-            message=chat.chat_text,
-            user_name=chat.chat_user,
-            created_at=chat.created_at
+            message=chat.chat_content,
+            user_name=chat.chat_student_email,
+            created_at=chat.chat_date,
+            status=chat.chat_status 
         )
         
     #Read    
