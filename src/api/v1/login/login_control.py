@@ -36,7 +36,12 @@ TEACHER_SCOPE = "teacher"
 # OAuth2 인증 설정
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="token",
+    tokenUrl="/api/v1/login/student",
+    scopes={"student": "Access as student", "teacher": "Access as teacher"},
+)
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/login/teacher",
     scopes={"student": "Access as student", "teacher": "Access as teacher"},
 )
 
