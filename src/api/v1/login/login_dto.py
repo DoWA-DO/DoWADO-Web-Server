@@ -13,4 +13,3 @@ class Token(BaseDTO):
     access_token: str
     token_type: str
     username: str
-    scope: str
