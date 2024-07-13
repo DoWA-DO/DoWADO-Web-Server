@@ -13,4 +13,4 @@ class Token(BaseDTO):
     access_token: str
     token_type: str
     username: str
-    scopes: list[str] = []
+    scope: str
