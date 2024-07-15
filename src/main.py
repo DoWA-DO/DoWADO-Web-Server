@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from src.core.cors import setup_cors
 from src.core.event import app_lifespan
 from src.core.error import setup_error_handling
-from src.api.v1 import router as v1_router
-from src.config.config import setup_logging
+from src.api import router as v1_router
+from src.settings.config import setup_logging
 from dotenv import load_dotenv
 
 
@@ -14,7 +14,7 @@ setup_logging()  # 로깅 설정
 load_dotenv()
 
 app = FastAPI(
-    title="Semtle-Web-Server",
+    title="DoWA:DO-Web-Server",
     version="0.1",
     description="API 서버",
     lifespan=app_lifespan  # 생명주기 이벤트 설정

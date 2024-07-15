@@ -1,13 +1,20 @@
 """
-전역 상수 초기화
+전역 설정 초기화, 전역 변수 초기화
 """
 import logging
 import logging.config
 from dotenv import load_dotenv
+from dataclasses import dataclass
+
 
 load_dotenv()
 
-class Settings:
+
+
+
+
+class Env:
+    OPENAI_API_KEY: ...
     DB_PROTOCAL: str = "postgresql+asyncpg"  # 환경변수에 저장해야 함
     DB_USERNAME: str = "dowado"
     DB_PASSWORD: str = "1234"
@@ -17,7 +24,7 @@ class Settings:
 
     DATABASE_URL = f"{DB_PROTOCAL}://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-settings = Settings()
+settings = Env()
 
 
 LOGGING_CONFIG = {
@@ -57,3 +64,7 @@ LOGGING_CONFIG = {
 
 def setup_logging():
     logging.config.dictConfig(LOGGING_CONFIG)
+    
+
+
+

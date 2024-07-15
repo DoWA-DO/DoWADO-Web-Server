@@ -12,6 +12,13 @@ sqlalchemy = "^2.0.31"
 fastapi-mail = "^1.4.1"
 python-dotenv = "^1.0.1"
 asyncpg = "^0.29.0"
+langchain = "^0.2.7"
+pydantic = "^2.8.2"
+openai = "^1.35.13"
+langchain-community = "^0.2.7"
+langchain-openai = "^0.1.16"
+langchain-core = "^0.2.18"
+redis = "^5.0.7"
 
 
 [build-system]

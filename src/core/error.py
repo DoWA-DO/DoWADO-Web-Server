@@ -4,7 +4,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from src.config.status import ER
+from src.settings.status import ER
 import logging
 
 logger = logging.getLogger(__name__)
