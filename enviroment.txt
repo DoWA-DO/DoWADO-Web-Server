@@ -1,3 +1,11 @@
 fastapi
 uvicorn
-sqlalchemy
+SQLAlchemy
+bcrypt
+pydantic
+pydantic_core
+pydantic-settings
+urllib3
+python-jose
+pytest-asyncio
+requests

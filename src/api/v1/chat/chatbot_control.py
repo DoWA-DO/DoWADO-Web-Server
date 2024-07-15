@@ -21,11 +21,12 @@ router = APIRouter(prefix="/chatbot", tags=["채팅"])
 )
 async def create_chat(
     chat_request: ChatCreateRequest,
-    current_user: str = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     chat_service: ChatService = Depends(ChatService)
 ):
     try:
-        return await chat_service.create_chat(current_user, chat_request)
+        username = current_user.get('username')
+        return await chat_service.create_chat(username, chat_request)
     except Exception as e:
         logger.error(f"Error creating chat: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -40,10 +41,11 @@ async def create_chat(
 )
 
 async def read_chat(
-    current_user: str = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     chat_service: ChatService = Depends(ChatService)
 ): 
-    chats = await chat_service.read_chat(current_user)
+    username = current_user.get('username')
+    chats = await chat_service.read_chat(username)
     return [
         ChatCreateResponse(
         id=chat.id,
@@ -62,11 +64,12 @@ async def read_chat(
     responses=Status.docs(SU.SUCCESS, ER.INVALID_REQUEST)
 )
 async def delete_chat(
-    current_user: str = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     chat_service: ChatService = Depends(ChatService)
 ):
     try:
-        await chat_service.delete_chat(current_user)
+        username = current_user.get('username')
+        await chat_service.delete_chat(username)
         return {"detail": "Chats deleted successfully"}
     except Exception as e:
         logger.error(f"Error deleting chats: {e}")

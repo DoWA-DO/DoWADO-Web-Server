@@ -52,7 +52,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             )
         
         logger.info(f"Current user retrieved: {username}, scope: {scope}")
-        return {"username": username, "scope": scope}
+        return {"username": username, "scope": scope, "tokenUrl": tokenUrl}
     
     except JWTError:
         logger.error(f"Token decoding failed for token: {token}")
@@ -144,5 +144,6 @@ async def read_users_me(current_user: str = Security(get_current_user)):
     return {
         "access_token": "example_access_token",
         "token_type": "bearer",
-        "username": current_user['username']
+        "username": current_user['username'],
+        "tokenUrl": current_user['tokenUrl']
     }
