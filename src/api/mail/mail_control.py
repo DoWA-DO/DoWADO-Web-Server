@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from .mail_dto import EmailRequest
-from .mail_service import send_email
+from .mail_service import generate_verification_code, send_email
 import logging
 
 
@@ -10,4 +10,6 @@ router = APIRouter(tags=["naver smtp"])
 
 @router.post("/send_email")
 async def send_email_handler(email_request: EmailRequest):
-    return await send_email(email_request)
+    verification_code = generate_verification_code()
+    response = await send_email(email_request, verification_code)
+    return {"verification_code": verification_code, "message": response["message"]}

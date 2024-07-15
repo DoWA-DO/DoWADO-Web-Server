@@ -1,12 +1,22 @@
-# naver smtp 이용하기 전 네이버 메일에서 pop3/smtp 사용으로 바꿔야 함.
+# naver smtp 이용하기 전 네이버 메일(서버)에서 pop3/smtp 사용으로 바꿔야 함.
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import random
 import smtplib
+import string
 from fastapi import HTTPException
+
+from src.core.config import NAVER_EMAIL, NAVER_PASSWORD
 from .mail_dto import EmailRequest
 
-async def send_email(email_request: EmailRequest):
+
+# Generate random verification code
+def generate_verification_code(length: int = 4) -> str:
+    letters_and_digits = string.ascii_letters + string.digits
+    return ''.join(random.choice(letters_and_digits) for i in range(length))
+  
+async def send_email(email_request: EmailRequest, verification_code: str):
     smtp_server = "smtp.naver.com"
     smtp_port = 587
 
@@ -14,18 +24,18 @@ async def send_email(email_request: EmailRequest):
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.ehlo()
         server.starttls()
-        server.login("example@naver.com", "example") #서버로 사용할 naver id pw
+        server.login(NAVER_EMAIL, NAVER_PASSWORD) #서버로 사용할 naver id pw
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = email_request.subject
-        msg['From'] = email_request.from_email
+        msg['From'] = NAVER_EMAIL
         msg['To'] = email_request.to_email
 
         html = f"""
         <html>
           <body>
-            <p>{email_request.body}</p>
-            <a href="{email_request.verification_url}" style="background-color:#4CAF50;border:none;color:white;padding:15px 32px;text-align:center;text-decoration:none;display:inline-block;font-size:16px;margin:4px 2px;cursor:pointer;">Verify Account</a>
+            <p>다음은 귀하의 인증 코드입니다: <strong>{verification_code}</strong></p>
+            <p>인증 코드를 입력하여 계정을 인증하십시오.</p>
           </body>
         </html>
         """

@@ -23,6 +23,10 @@ settings = Settings()
 # secret key 생성 : openssl rand -hex 32
 SECRET_KEY = "8a4bab952b4e4317af926571fb93f1820f6929ba9c7c70b7969b1a01ec92757f"
 
+# 네이버 메일 서버
+NAVER_EMAIL = "example@naver.com" 
+NAVER_PASSWORD = "example"
+
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
