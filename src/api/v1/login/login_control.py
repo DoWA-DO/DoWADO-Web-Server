@@ -22,7 +22,7 @@ STUDENT_SCOPE = "student"
 TEACHER_SCOPE = "teacher"
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/login/student",
+    tokenUrl="/api/v1/login",
     scopes={"student": "Access as student", "teacher": "Access as teacher"}
 )
 
@@ -51,7 +51,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        logger.info(f"Current user retrieved: {username}, scope: {scope}")
+        logger.info(f"Current user retrieved: {username}, scope: {scope}, tokenUrl: {tokenUrl}")
         return {"username": username, "scope": scope, "tokenUrl": tokenUrl}
     
     except JWTError:
@@ -62,69 +62,52 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-async def authenticate_student_user(username: str, password: str, db: AsyncSession):
-    user = await login_dao.get_student_user(db, username)
+async def authenticate_user(username: str, password: str, scope: str, db: AsyncSession):
+    if scope == STUDENT_SCOPE:
+        user = await login_dao.get_student_user(db, username)
+    elif scope == TEACHER_SCOPE:
+        user = await login_dao.get_teacher_user(db, username)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid scope"
+        )
+
     if not user or not pwd_context.verify(password, user[0]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    logger.info(f"Student user authenticated: {username}")
+    logger.info(f"{scope.capitalize()} user authenticated: {username}")
     return user[1]
 
-async def authenticate_teacher_user(username: str, password: str, db: AsyncSession):
-    user = await login_dao.get_teacher_user(db, username)
-    if not user or not pwd_context.verify(password, user[0]):
+# 학생, 선생 api 각각 나누면 tokenurl에서 불러오는 게 불가능 -> 합쳐줌
+@router.post(
+    "/",
+    summary="로그인",
+    description="- 학생/선생에 따라 로그인",
+    response_model=login_dto.Token,
+    responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
+)
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db)
+):
+    if form_data.scopes == ["student"]:
+        scope = STUDENT_SCOPE
+    elif form_data.scopes == ["teacher"]:
+        scope = TEACHER_SCOPE
+    else:
         raise HTTPException(
             status_code=401,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Invalid scope"
         )
-    logger.info(f"Teacher user authenticated: {username}")
-    return user[1]
-
-@router.post(
-    "/student",
-    summary="학생 로그인",
-    description="- 학생 db에서 일치하는 email, password 확인 후 로그인",
-    response_model=login_dto.Token,
-    responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
-)
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_db),
-):
-    username = await authenticate_student_user(form_data.username, form_data.password, db)
+    username = await authenticate_user(form_data.username, form_data.password, scope, db)
     data = {
         "sub": username,
-        "scope": STUDENT_SCOPE,
-        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
-    }
-    access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-    logger.info("----------로그인----------")
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "username": username
-    }
-
-@router.post(
-    "/teacher",
-    summary="선생님 로그인",
-    description="- 선생님 db에서 일치하는 email, password 확인 후 로그인",
-    response_model=login_dto.Token,
-    responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
-)
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_db),
-):
-    username = await authenticate_teacher_user(form_data.username, form_data.password, db)
-    data = {
-        "sub": username,
-        "scope": TEACHER_SCOPE,
-        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        "scope": scope,
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
     access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     logger.info("----------로그인----------")
@@ -140,10 +123,11 @@ async def login_for_access_token(
     description="- 토큰 정보를 이용하여 사용자 정보 조회",
     response_model=login_dto.Token,
 )
-async def read_users_me(current_user: str = Security(get_current_user)):
+async def read_users_me(current_user: dict = Security(get_current_user)):
     return {
         "access_token": "example_access_token",
         "token_type": "bearer",
         "username": current_user['username'],
-        "tokenUrl": current_user['tokenUrl']
+        "tokenUrl": current_user['tokenUrl'],
+        "scope": current_user['scope']
     }
