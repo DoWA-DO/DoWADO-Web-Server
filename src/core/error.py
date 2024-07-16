@@ -1,29 +1,40 @@
 """
-전역 에러 처리 설정
+커스텀 예외처리 확장 모듈
 """
-from fastapi import FastAPI, Request
+import traceback
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from src.settings.status import ER
+from src.config.status import ER
 import logging
+
 
 logger = logging.getLogger(__name__)
 
 
+def _error(err: Exception):
+    ''' 입력된 예외 객체를 처리하여 로깅 정보를 반환 '''
+    logger.exception(err)
+    return {"error": traceback.format_exc()}
 
-def setup_error_handling(app: FastAPI):
-    @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError):    
-        logger.error(f"전역 에러 실행 - 필드 유효성 검증에 실패하였습니다. 즉, 올바르지 않은 값을 입력하였습니다. : {exc}")
-        return JSONResponse(
-            status_code=ER.FIELD_VALIDATION_ERROR[0],
-            content={"message": ER.FIELD_VALIDATION_ERROR[1]}
-        )
+
+def use(app: FastAPI):
+    ''' 커스텀 예외 모듈 사용 '''
+    
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(request: Request, exc: HTTPException):
+        ''' HTTPException 예외에 대한 처리 '''
+        status_code = exc.status_code
+        result = {"message": exc.detail}
+        result["detail"] = _error(exc)
+        return JSONResponse(status_code=status_code, content=result)
+                            
 
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
-        logger.error(f"전역 에러 실행 - 서버 내부(벡엔드)에 에러가 발생하였습니다. : {exc}")
-        return JSONResponse(
-            status_code=ER.INTERNAL_ERROR[0],
-            content={"message": ER.INTERNAL_ERROR[1]}
-        )
+        ''' 모든 예외에 대한 전역 처리 '''
+        status_code = ER.INTERNAL_ERROR[0]
+        result = {
+            "message": ER.INTERNAL_ERROR[1]
+        }
+        result["detail"] = _error(exc)
+        return JSONResponse(status_code=status_code, content=result)

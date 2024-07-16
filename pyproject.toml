@@ -19,6 +19,7 @@ langchain-community = "^0.2.7"
 langchain-openai = "^0.1.16"
 langchain-core = "^0.2.18"
 redis = "^5.0.7"
+dacite = "^1.8.1"
 
 
 [build-system]

@@ -4,20 +4,19 @@
 from typing import Annotated
 from typing import Optional
 from fastapi import APIRouter, Depends, Request
-from src.settings.status import Status, SU, ER
+from src.config.status import Status, SU, ER
 from src.api.chat import chat_service
 import logging
 
 # 임시
 from src.api.chat.chat_dto import ChatRequest, ChatResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.database.session import get_db
+
 
 
 # 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/careerchat", tags=["Career-Counseling-Chatbot"])
-
 
 
 @router.post(

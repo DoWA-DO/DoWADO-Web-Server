@@ -82,3 +82,16 @@
     - `dbeaver`을 열고 좌측 `Database Navigator`에서 `postgres_dowado` 를 우클릭한 후 `Edit-Connection`을 클릭한다.
     - 새로운 창이 열리면 좌측 하단의 `Test Connection`을 눌러서 정상적으로 연결되었는지 확인한다.
     - 이후 fastapi 서버를 실행하면 끝.
+
+
+
+
+
+
+
+
+
+redis 서버 구동
+```
+docker run -d -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+```
