@@ -29,11 +29,11 @@ class GeneralSettings(BaseSettings):
     API_DOC_VIEW: bool = True
 
 class RDBSettings(BaseSettings):
-    DB_PROTOCAL: str = "postgresql+asyncpg"  # 환경변수에 저장해야 함
+    DB_PROTOCAL: str = "postgresql+psycopg"  # asyncpg | psycopg 이지만 psycopg3 사용(비동기가능/벡터DB+RDB) 
     DB_USERNAME: str = "dowado"
     DB_PASSWORD: str = SecretStr
     DB_HOST: str = "localhost"
-    DB_PORT: str = "5432"
+    DB_PORT: str = "6024"
     DB_NAME: str = "postgres"
 
 # class JWTSettings(BaseSettings):
