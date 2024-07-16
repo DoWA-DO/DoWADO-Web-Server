@@ -10,11 +10,9 @@ from src.api.chat.chat_dto import ChatRequest, ChatResponse
 import logging
 
 
-
-
-# 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/careerchat", tags=["Career-Counseling-Chatbot"])
+
 
 
 @router.post(

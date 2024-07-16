@@ -5,8 +5,9 @@ import openai
 import redis
 import uuid
 from typing import Dict, List, Optional
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_community.vectorstores.pgvector import PGVector
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from src.config import settings
 
 
@@ -20,7 +21,6 @@ def generate_session_id() -> str:
 
 
 
-
 class ChatBase:
     def __init__(self):
         self.SIMILARITY_THRESHOLD = 0.15
@@ -29,11 +29,12 @@ class ChatBase:
         self.retriever = self.init_retriever()
         self.chain = self.init_chain()
 
-    def _init_vector_store(self):
-        embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
-        vector_store = Chroma
-
-
+    # def _init_vector_store(self):
+    #     embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
+    #     vector_store = PGVector.from_documents(
+    #         embedding= embeddings,
+    #         documents= 
+    #     )
 
 
 

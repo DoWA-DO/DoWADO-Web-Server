@@ -2,18 +2,19 @@
 데이터베이스 세션 관리 도구 모듈
 """
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from functools import wraps
 from typing import AsyncIterable, Callable, Any
 from contextlib import asynccontextmanager
 import logging
+from src.database.models import Base
 
 
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
 
-Base = declarative_base()
+
 
 class RDBTools:
     ''' 데이터베이스 세션 도구 모음 '''

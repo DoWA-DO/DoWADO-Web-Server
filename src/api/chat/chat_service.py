@@ -12,4 +12,5 @@ async def create_chatbot_session(request: Request):
     return {"session_id": session_id}
         
 
+async def get_chatbot_message(session_id: str, query: str):
 

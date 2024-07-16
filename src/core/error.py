@@ -8,12 +8,12 @@ from src.config.status import ER
 import logging
 
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 def _error(err: Exception):
     ''' 입력된 예외 객체를 처리하여 로깅 정보를 반환 '''
-    logger.exception(err)
+    _logger.exception(err)
     return {"error": traceback.format_exc()}
 
 
