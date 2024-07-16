@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: pgsqldb
+    image: ankane/pgvector:latest
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: dowado
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    networks:
+      - default
+
+volumes:
+  postgres-data:
+
+
+networks:
+  default:
+    driver: bridge
+    name: dowado

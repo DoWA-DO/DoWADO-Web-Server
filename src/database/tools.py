@@ -24,7 +24,7 @@ class RDBTools:
         
     async def create_tables(self):
         ''' 테이블 생성 '''
-        async with self._engine.begin() as conn:
+        async with self.engine.begin() as conn:
             _logger.info('모델 메타 데이터에 기반하여 테이블 유무 확인 후, 생성')
             await conn.run_sync(Base.metadata.create_all)
     

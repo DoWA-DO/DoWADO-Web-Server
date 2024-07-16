@@ -46,9 +46,15 @@
      ```
      docker pull postgres:latest
      ```
+     ```
+     docker pull ankane/pgvector:latest
+     ```
    - 도커 이미지를 사용하기 위해 컨터이너 생성
      ```
      docker run -p 5432:5432 --name postgres-dowado -e POSTGRES_USER=dowado -e POSTGRES_PASSWORD=1234 -e POSTGRES_DB=postgres -e TZ=Asia/Seoul -d postgres:latest
+     ```
+     ```
+     docker run -p 5432:5432 --name postgres-dowado -e POSTGRES_USER=dowado -e POSTGRES_PASSWORD=1234 -e POSTGRES_DB=postgres -e TZ=Asia/Seoul -d ankane/pgvector:latest
      ```
    - 설치했던 도커 데스크톱에서 container가 정상적으로 실행되는지 확인한다.
 
@@ -88,7 +94,11 @@
 
 
 
+db
+- docker-compose up -d 만 하면 자동으로 됨.
 
+컨테이너 제대로 시작되었는지 로그 확인
+docker-compose logs -f
 
 
 redis 서버 구동

@@ -6,11 +6,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Request
 from src.config.status import Status, SU, ER
 from src.api.chat import chat_service
+from src.api.chat.chat_dto import ChatRequest, ChatResponse
 import logging
 
-# 임시
-from src.api.chat.chat_dto import ChatRequest, ChatResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 
@@ -21,8 +19,8 @@ router = APIRouter(prefix="/careerchat", tags=["Career-Counseling-Chatbot"])
 
 @router.post(
     "/new-session",
-    summary= "새로운 채팅 시작 및 재시작",
-    description= "- 새로운 채팅 세션 생성 및 재생성",
+    summary= "새로운 채팅 시작",
+    description= "- 새로운 채팅 세션 생성",
     # response_model=
     # responses=
 )
@@ -42,8 +40,9 @@ async def create_chatbot_session(
     # responses      = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
 )
 async def create_chatbot_message(
+    session_id: str,
     query: str,
 ):
-    response = await chat_service.get_chatbot_message(query)
+    response = await chat_service.get_chatbot_message(session_id, query)
     return ChatResponse(response=response)
 

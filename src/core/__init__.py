@@ -20,12 +20,11 @@ class DowaDOAPI(FastAPI):
         if kwargs.get('disable_api_doc', None):
             kwargs.update({"redoc_url": None, "docs_url": None})
         super().__init__(**kwargs)
-        _logger.info("DowaDOAPI 인스턴스 생성됨")
+        _logger.info("=>> DowaDOAPI 인스턴스 생성")
         
     
     def _get_module_name(self, path: Path) -> str:
         ''' 파일 경로로부터 모듈 이름 생성('src/api/auth/auth_control.py' -> 'src.api.auth.auth_control') '''
-        _logger.info(f"_get_module_name 호출됨: {path}")
         paths = []
         if path.name != '__init__.py':
             paths.append(path.stem)
@@ -41,13 +40,13 @@ class DowaDOAPI(FastAPI):
             paths.append(path.stem)
 
         module_name = '.'.join(reversed(paths))
-        _logger.info(f"생성된 모듈 이름: {module_name}")
+        _logger.info(f"=>> 파일 경로로부터 라우터 이름 생성 : {module_name}")
         return module_name
     
     
     def _load_module(self, module_name: str, attr_name: str) -> Optional[APIRouter]:
         ''' 모듈 동적 임포트, 로드 '''
-        _logger.info(f"모듈을 로드합니다 -> module_name : {module_name}, attr_name : {attr_name}")
+        _logger.info(f"=>> 라우터 로드 중 -> module_name : {module_name}, attr_name : {attr_name}")
         module = __import__(module_name, fromlist=[attr_name])
         return getattr(module, attr_name, None)
 
@@ -61,7 +60,7 @@ class DowaDOAPI(FastAPI):
         ''' 특정 패턴을 가진 파일들 안에서 라우터(APIRouter)를 동적으로 로드 '''
         for f in Path(base).glob("**/*_control.py"):
             module_name = self._get_module_name(f)
-            _logger.info(f"발견한 모듈 : {module_name}")
+            _logger.info(f"=>> 발견한 라우터(로드 대상) : {module_name}")
             router = self._load_module(module_name, "router")
             if router:
                 yield router
