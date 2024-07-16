@@ -66,11 +66,12 @@ async def create_teacher(
     await teacher_service.create_teacher(teacher, db)
     return SU.CREATED
 
+
 # Update
 @router.put(
     "/update",
-    summary="교원 변경 사항 수정",
-    description="- email이 일치하는 데이터의 비밀번호, 이름, 학교이름 수정",
+    summary="교원 개인정보 수정",
+    description="- email이 일치하는 데이터의 비밀번호 수정",
     responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
 )
 async def update_teacher(
@@ -82,7 +83,7 @@ async def update_teacher(
     await teacher_service.update_teacher(teacher_email, teacher_info, db)
     return SU.SUCCESS
 
-
+'''
 # Delete
 @router.delete(
     "/delete",
@@ -96,3 +97,4 @@ async def delete_teacher(
 ):
     await teacher_service.delete_teacher(teacher_email, db)
     return SU.SUCCESS
+'''

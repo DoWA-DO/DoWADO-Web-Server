@@ -7,19 +7,19 @@ class KeyStudent(BaseModel):
     student_email: Annotated[Union[EmailStr, None], Field(description="학생 메일")]
 
 class UpdateStudent(BaseModel):
-    student_school: Annotated[Union[str, None], Field(description="학생 학교 이름")]
-    student_name: Annotated[Union[str, None], Field(description="학생 이름")]
     student_password: Annotated[Union[str, None], Field(description="학생 비밀번호")]
-    student_grade: Annotated[Union[int, None], Field(description="학생 학년")]
-    student_class: Annotated[Union[int, None], Field(description="학생 반")]
-    student_number: Annotated[Union[int, None], Field(description="학생 번호")]
-    student_teacher_email: Annotated[Union[EmailStr, None], Field(description="담당 선생님 메일")]
 
 class ReadStudentInfo(KeyStudent, UpdateStudent):
     pass
 
 class CreateStudent(KeyStudent, UpdateStudent):
+    student_school: Annotated[Union[str, None], Field(description="학생 학교 이름")]
+    student_name: Annotated[Union[str, None], Field(description="학생 이름")]
     student_password2: Annotated[Union[str, None], Field(description="학생 비밀번호 확인")]
+    student_grade: Annotated[Union[int, None], Field(description="학생 학년")]
+    student_class: Annotated[Union[int, None], Field(description="학생 반")]
+    student_number: Annotated[Union[int, None], Field(description="학생 번호")]
+    student_teacher_email: Annotated[Union[EmailStr, None], Field(description="담당 선생님 메일")]
 
     @validator('student_email', 'student_password', 'student_password2', 'student_name', 'student_school', 'student_teacher_email')
     def not_empty(cls, v):

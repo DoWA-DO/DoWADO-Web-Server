@@ -27,7 +27,7 @@ ALGORITHM = "HS256"
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/student", tags=["학생"])
 
-
+'''
 # Read
 @router.get(
     "/read",
@@ -42,7 +42,7 @@ async def get_student(db: AsyncSession = Depends(get_db)):
     logger.info("----------전체 학생 목록 조회----------")
     student_info = await student_service.get_student(db)
     return student_info
-
+'''
 
 # Create
 @router.post(
@@ -69,8 +69,8 @@ async def create_student(
 # Update
 @router.put(
     "/update",
-    summary="학생 변경 사항 수정",
-    description="- email이 일치하는 데이터의 비밀번호, 이름, 학교이름 수정",
+    summary="학생 개인정보 수정",
+    description="- email이 일치하는 데이터의 비밀번호 수정",
     responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
 )
 async def update_student(
@@ -82,7 +82,7 @@ async def update_student(
     await student_service.update_student(student_email, student_info, db)
     return SU.SUCCESS
 
-
+'''
 # Delete
 @router.delete(
     "/delete",
@@ -96,3 +96,4 @@ async def delete_student(
 ):
     await student_service.delete_student(student_email, db)
     return SU.SUCCESS
+'''

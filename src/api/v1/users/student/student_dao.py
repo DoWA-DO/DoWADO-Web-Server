@@ -16,13 +16,13 @@ from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
+'''
 # Read
 async def get_student(db: AsyncSession) -> list[ReadStudentInfo]:  # = Depends(get_db)
     result = await db.execute(select(UserStudent))
     student_info = result.scalars().all()
     return student_info
-
+'''
 # Create
 async def create_student(student: CreateStudent, db: AsyncSession) -> None:
     '''
@@ -52,11 +52,20 @@ async def get_existing_user(db: AsyncSession, teacher: CreateStudent) -> Optiona
         
 # Update
 async def update_student(student_email: str, student_info: UpdateStudent, db: AsyncSession) -> None:
-    await db.execute(update(UserStudent).filter(UserStudent.student_email==student_email).values(student_info.dict()))
+    # 기존 비밀번호 해시 값 가져오기
+    existing_teacher = await db.get(UserStudent, student_email)
+    
+    # 새 비밀번호 해시화
+    new_password_hash = pwd_context.hash(student_info.teacher_password)
+    
+    # 비밀번호 해시 값 업데이트
+    existing_teacher.teacher_password = new_password_hash
+
+    await db.commit()
     await db.commit()
     
-
+'''
 # Delete
 async def delete_student(student_email: str, db: AsyncSession) -> None:
     await db.execute(delete(UserStudent).where(UserStudent.student_email == student_email))
-    await db.commit()
+    await db.commit()'''
