@@ -11,3 +11,4 @@ python-jose
 pytest-asyncio
 requests
 smtplib
+passlib
