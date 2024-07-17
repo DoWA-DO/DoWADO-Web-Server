@@ -13,7 +13,7 @@ class UserStudent(Base):
     __tablename__ = "user_student"
     
     student_email = Column(Text, primary_key=True, unique=True) # 학생 메일
-    student_name = Column(String, unique=True, nullable=False) # 학생 이름
+    student_name = Column(String, nullable=False) # 학생 이름
     student_school = Column(String, nullable=False) # 학생 학교 이름
     student_password = Column(String, nullable=False) # 학생 비밀번호
     student_grade = Column(Integer, nullable=False) # 학생 학년
@@ -26,7 +26,7 @@ class UserTeacher(Base):
     __tablename__ = "user_teacher"
     
     teacher_email = Column(Text, primary_key=True, unique=True) # 교원 메일
-    teacher_name = Column(String, unique=True, nullable=False) # 교원 이름
+    teacher_name = Column(String, nullable=False) # 교원 이름
     teacher_password = Column(String, nullable=False) # 교원 비밀번호
     teacher_school = Column(String, nullable=False) # 교원 학교 이름
     teacher_grade = Column(Integer, nullable=False) # 교원 학년
@@ -40,7 +40,8 @@ class ChatLog(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True) # 채팅 고유 번호
     chat_student_email  = Column(Text, ForeignKey('user_student.student_email'), nullable=False) # 학생 메일
-    chat_content  = Column(Text, nullable=True) # 대화 내용 (JSON 데이터 저장)
+    chat_content  = Column(Text, nullable=False) # 학생이 보낸 대화 
+    chat_response = Column(Text, nullable=False) # 챗봇으로부터 받은 답변
     chat_date = Column(DateTime, default=func.now()) # 대화 종료 일시 자동 기록
     chat_status =  Column(Integer, default=0) # 리포트 생성 여부 (0:미생성, 1:생성)
     

@@ -11,8 +11,9 @@ class ChatCreateRequest(BaseModel):
 
 class ChatCreateResponse(BaseModel):
     id: int
-    chat_content: str
     chat_student_email: str
+    chat_content: str
+    chat_response:str
     chat_date: datetime
     chat_status: int
     
