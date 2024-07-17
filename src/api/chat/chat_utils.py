@@ -33,30 +33,30 @@ def generate_session_id() -> str:
 
 class ChatBase:
     def __init__(self):
-        # self._SIMILARITY_THRESHOLD = 0.15
+        self._SIMILARITY_THRESHOLD = 0.15
         self._llm = ChatOpenAI(
             model       = settings.Idx.model_name, 
             temperature = settings.Idx.temperature,
         )
-        self.vector_store_Q = self._init_vector_store("career_question_docs")
+        self.vector_store_Q = self._init_vector_store("career_question_docs") # 벡터스토어 컬렉션 이름
         self.vector_store_I = self._init_vector_store("job_info_docs")
-        self.retriever_Q = self._init_retriever(self.vector_store_questionnaire, "mmr", {'lambda_mult': 0.5, 'fetch_k': 20})
-        self.retriever_I = self._init_retriever(self.vector_store_career, "similarity")
+        self.retriever_Q = self._init_retriever(self.vector_store_Q, settings.Idx.retriever_Q_search_type)
+        self.retriever_I = self._init_retriever(self.vector_store_I, settings.Idx.retriever_I_search_type)
         self.chain = self._init_jobinfo_chain()
 
 
     # QI 케이스 구분완료
     def _init_vector_store(self, collection_name: str):
         ''' Vector Store 초기화 '''
-        _embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
+        _embeddings = OpenAIEmbeddings(model = settings.Idx.embed_model)
         vector_store = PGVector(
-            connection = DATABASE_URL,         # 벡터 DB 주소
-            embeddings = _embeddings,          # 임베딩 함수
-            embedding_length = 512,            # 768, 임베딩 벡터 길이 제약,
-            collection_name = collection_name, # 벡터스토어 컬렉션 이름(=그룹명)
-            distance_strategy = "COSINE",      # 유사도 측정 기준
-            pre_delete_collection = False,     # 테스트 시 True -> 기존 컬렉션 삭제
-            use_jsonb = True,                  # json보다 성능 좋음     
+            connection = DATABASE_URL,                        # 벡터 DB 주소
+            embeddings = _embeddings,                         # 임베딩 함수
+            embedding_length = settings.Idx.embedding_length, # 임베딩 벡터 길이 제약,
+            collection_name = collection_name,                # 벡터스토어 컬렉션 이름(=그룹명)
+            distance_strategy = "COSINE",                     # 유사도 측정 기준
+            pre_delete_collection = False,                    # 테스트 시 True -> 기존 컬렉션 삭제
+            use_jsonb = True,                                 # json보다 성능 좋음     
         )
         return vector_store
 
@@ -69,17 +69,16 @@ class ChatBase:
             search_kwargs = {}
         
         if search_type == "similarity":
-            return vector_store.as_retriever(search_type="similarity", search_kwargs=search_kwargs)
+            return vector_store.as_retriever(search_type=search_type, search_kwargs=search_kwargs)
         elif search_type == "mmr":
             search_kwargs.setdefault('lambda_mult', 0.5)
             search_kwargs.setdefault('fetch_k', 20)
-            return vector_store.as_retriever(search_type="mmr", search_kwargs=search_kwargs)
+            return vector_store.as_retriever(search_type=search_type, search_kwargs=search_kwargs)
         elif search_type == "similarity_score_threshold":
-            search_kwargs.setdefault('score_threshold', self.SIMILARITY_THRESHOLD)
-            return vector_store.as_retriever(search_type="similarity_score_threshold", search_kwargs=search_kwargs)
+            search_kwargs.setdefault('score_threshold', self._SIMILARITY_THRESHOLD)
+            return vector_store.as_retriever(search_type=search_type, search_kwargs=search_kwargs)
         else:
             raise ValueError(f"Invalid search type: {search_type}")
-    
     
     # job info
     def _init_jobinfo_chain(self):
@@ -93,12 +92,10 @@ class ChatBase:
         history_aware_retriever = create_history_aware_retriever(
             self._llm, self.retriever_I, contextualize_q_prompt
         )       
-        
         # 응답 생성 + 프롬프트 엔지니어링
         qa_chain = create_stuff_documents_chain(self.llm, qa_prompt)
-        
         jobinfo_chain = create_retrieval_chain(history_aware_retriever, qa_chain)
-        
+
         _logger.info("=>> jobinfo chain 초기화 완료")
         return jobinfo_chain        
 

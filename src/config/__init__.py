@@ -60,7 +60,14 @@ class IdxSettings(BaseSettings):
     output_token: int = 1024 # 4096
     chunk_overlap: int = 0
     chunk_size: int = 512
-    embed_model: str = ...
+    embed_model: str = "text-embedding-ada-002" # "intfloat/e5-small"
+    
+    # 추가 옵션
+    embedding_length: int = 512 # 768, 임베딩 벡터 길이 제약
+    
+    # search type : similarity(코사인유사도), mmr(mmr알고리즘, 다양성에 집중), similarity_score_threshold(유사도 기준값 지정 버전)
+    retriever_Q_search_type: str = "mmr"
+    retriever_I_search_type: str = "similarity"
     
 
 class Settings(BaseSettings):
