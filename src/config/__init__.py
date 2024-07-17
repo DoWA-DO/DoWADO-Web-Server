@@ -53,11 +53,22 @@ class RDBSettings(BaseSettings):
 #     USE_CREDENTIALS: bool = True
 #     VALIDATE_CERTS: bool = True
 
+class IdxSettings(BaseSettings):
+    model_name: str = "gpt-3.5-turbo-1106" # gpt-3.5-turbo gpt-4-turbo
+    temperature: int = 0
+    context_window: int = 4096 # 16385(3.5) 128000(4)
+    output_token: int = 1024 # 4096
+    chunk_overlap: int = 0
+    chunk_size: int = 512
+    embed_model: str = ...
+    
+
 class Settings(BaseSettings):
     general: GeneralSettings = GeneralSettings()
     rdb: RDBSettings = RDBSettings()
     # jwt: JWTSettings = JWTSettings()
     # mail: SMTPSettings = SMTPSettings()
+    Idx: IdxSettings = IdxSettings()
     
 settings = Settings()
 
