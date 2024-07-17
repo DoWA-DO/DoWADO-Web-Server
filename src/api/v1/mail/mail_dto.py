@@ -1,5 +1,5 @@
-from pydantic import BaseModel
+from typing import Annotated, Union
+from pydantic import BaseModel, EmailStr, Field
 
 class EmailRequest(BaseModel):
-    to_email: str
-    subject: str
+    to_email: Annotated[Union[EmailStr, None], Field(description="메일")]

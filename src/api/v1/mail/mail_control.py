@@ -6,7 +6,7 @@ import logging
 
 # 로깅 및 라우터 객체 생성 - 기본적으로 추가
 logger = logging.getLogger(__name__)
-router = APIRouter(tags=["naver smtp"])
+router = APIRouter(prefix="/mail", tags=["naver smtp"])
 
 @router.post("/send_email")
 async def send_email_handler(email_request: EmailRequest):
