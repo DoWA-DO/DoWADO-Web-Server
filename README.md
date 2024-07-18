@@ -12,13 +12,14 @@
 
 ## 개발 환경 세팅하기
 
-참고) 본 개발 빌드는 Docker Postgres 이미지를 사용하는 버전입니다.
+참고) 본 개발 빌드는 Docker Postgres, redis 이미지를 사용하는 버전입니다.
 
 ### 사전 준비
 
 - `python` 버전 관리 목적 `pyenv` 설치
 - `python` 패키지 관리 목적 `poetry` 설치
-- Docker Descktop 설치 (WSL2 설치해야할 수도 있음.)
+- Docker Descktop 설치
+- Dbeaver 설치
 
 ### 개발 빌드
 
