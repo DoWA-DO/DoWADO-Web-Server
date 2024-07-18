@@ -69,6 +69,9 @@ class IdxSettings(BaseSettings):
     retriever_Q_search_type: str = "mmr"
     retriever_I_search_type: str = "similarity"
     
+    # Chat DB
+    REDIS_URL: str = "redis://localhost:6379/0"
+    
 
 class Settings(BaseSettings):
     general: GeneralSettings = GeneralSettings()

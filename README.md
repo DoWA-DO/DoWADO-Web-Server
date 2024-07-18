@@ -42,19 +42,9 @@
      ```
      docker -v
      ```
-   - 도커에서 postgres 이미지를 다운받는다.
+   - 도커 이미지 다운 + 컨테이너 생성
      ```
-     docker pull postgres:latest
-     ```
-     ```
-     docker pull ankane/pgvector:latest
-     ```
-   - 도커 이미지를 사용하기 위해 컨터이너 생성
-     ```
-     docker run -p 5432:5432 --name postgres-dowado -e POSTGRES_USER=dowado -e POSTGRES_PASSWORD=1234 -e POSTGRES_DB=postgres -e TZ=Asia/Seoul -d postgres:latest
-     ```
-     ```
-     docker run -p 5432:5432 --name postgres-dowado -e POSTGRES_USER=dowado -e POSTGRES_PASSWORD=1234 -e POSTGRES_DB=postgres -e TZ=Asia/Seoul -d ankane/pgvector:latest
+     docker-compose up -d
      ```
    - 설치했던 도커 데스크톱에서 container가 정상적으로 실행되는지 확인한다.
 
@@ -84,24 +74,7 @@
 
 7. 이후 다시 실행할 때에는 다음과 같은 순서로 서버를 실행할 수 있다.
 
-    - `Docker Desktop` 을 열고, Containers 탭을 클릭한 뒤 `postgres-dowado` 컨테이너를 실행한다.
+    - `Docker Desktop` 을 열고, Containers 탭을 클릭한 뒤 `postgres-dowado` 컨테이너를 실행한다. + redis 컨테이너 실행
     - `dbeaver`을 열고 좌측 `Database Navigator`에서 `postgres_dowado` 를 우클릭한 후 `Edit-Connection`을 클릭한다.
     - 새로운 창이 열리면 좌측 하단의 `Test Connection`을 눌러서 정상적으로 연결되었는지 확인한다.
     - 이후 fastapi 서버를 실행하면 끝.
-
-
-
-
-
-
-db
-- docker-compose up -d 만 하면 자동으로 됨.
-
-컨테이너 제대로 시작되었는지 로그 확인
-docker-compose logs -f
-
-
-redis 서버 구동
-```
-docker run -d -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
-```

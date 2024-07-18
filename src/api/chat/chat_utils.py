@@ -11,6 +11,8 @@ from langchain_postgres.vectorstores import PGVector
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
+from langchain_community.chat_message_histories import RedisChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from src.config import settings
@@ -24,12 +26,9 @@ openai.api_key = settings.general.OPENAI_API_KEY
 
 ChatID = NewType('ChatID', str)
 
-def generate_session_id() -> str:
-    ''' UUID로 새로운 세션 ID 발급 '''
-    return str(uuid.uuid4()) # 네트워크 상에서 중복되지 않는 고유 ID (범용 고유 식별자)
-
-
-
+# def generate_session_id() -> str:
+#     ''' UUID로 새로운 세션 ID 발급 '''
+#     return str(uuid.uuid4()) # 네트워크 상에서 중복되지 않는 고유 ID (범용 고유 식별자)
 
 class ChatBase:
     def __init__(self):
@@ -52,9 +51,9 @@ class ChatBase:
         vector_store = PGVector(
             connection = DATABASE_URL,                        # 벡터 DB 주소
             embeddings = _embeddings,                         # 임베딩 함수
-            embedding_length = settings.Idx.embedding_length, # 임베딩 벡터 길이 제약,
+            # embedding_length = settings.Idx.embedding_length, # 임베딩 벡터 길이 제약,
             collection_name = collection_name,                # 벡터스토어 컬렉션 이름(=그룹명)
-            distance_strategy = "COSINE",                     # 유사도 측정 기준
+            distance_strategy = "cosine",                     # 유사도 측정 기준, l2, cosine, inner
             pre_delete_collection = False,                    # 테스트 시 True -> 기존 컬렉션 삭제
             use_jsonb = True,                                 # json보다 성능 좋음     
         )
@@ -93,7 +92,7 @@ class ChatBase:
             self._llm, self.retriever_I, contextualize_q_prompt
         )       
         # 응답 생성 + 프롬프트 엔지니어링
-        qa_chain = create_stuff_documents_chain(self.llm, qa_prompt)
+        qa_chain = create_stuff_documents_chain(self._llm, qa_prompt)
         jobinfo_chain = create_retrieval_chain(history_aware_retriever, qa_chain)
 
         _logger.info("=>> jobinfo chain 초기화 완료")
@@ -101,8 +100,43 @@ class ChatBase:
 
 
 
-class ChatGenerator:
-    def __init__(self) -> None:
-        ...
-    
 
+# 채팅 이어서, 저장?
+class ChatGenerator(ChatBase):
+    def __init__(self):
+        super().__init__()
+        self.session_id = self._generate_session_id()
+    
+    def _generate_session_id(self) -> ChatID:
+        ''' UUID로 새로운 세션 ID 발급 '''
+        return ChatID(str(uuid.uuid4())) # 네트워크 상에서 중복되지 않는 고유 ID (범용 고유 식별자)
+    
+    # @staticmethod    
+    def generate_query(self, input_query: str, session_id: str) -> dict:
+        def get_session_history(session_id: str) -> RedisChatMessageHistory:
+            return RedisChatMessageHistory(session_id=session_id, url=settings.Idx.REDIS_URL)
+
+        # chat_history = self._get
+        
+        conversational_rag_chain = RunnableWithMessageHistory(
+            self.chain,
+            get_session_history,                 # 메세지 기록 가져오는 함수
+            input_messages_key   = "input",   # 입력 메세지 키
+            output_messages_key  = "answer",  # 출력 메세지 키
+            history_messages_key = "chat_history", # 메세지 기록 키
+        )
+
+        response = conversational_rag_chain.invoke(
+            {"input": input_query},
+            config={"configurable": {"session_id": session_id}}
+        )
+
+        _logger.info(f'[응답 생성] 실제 모델 응답: response => \n{response}\n')
+        _logger.info(f"[응답 생성] 세션 ID [{session_id}]에서 답변을 생성했습니다.")
+        return response["answer"]
+
+
+def chat_generation(input_query):
+    chat = ChatGenerator()
+    output_query = chat.generate_query(input_query=input_query, session_id=chat.session_id)
+    return output_query

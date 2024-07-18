@@ -17,6 +17,17 @@ services:
     networks:
       - default
 
+  redis:
+    container_name: redisdb
+    image: redis/redis-stack:latest
+    restart: unless-stopped
+    volumes:
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    networks:
+      - default
+
 volumes:
   pgvector_data:
 

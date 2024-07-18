@@ -4,6 +4,7 @@
 from fastapi import Request
 from src.api.chat import chat_dao, chat_utils
 from src.api.chat.chat_dto import ChatRequest, ChatResponse
+from src.api.chat.chat_utils import chat_generation
 
 
 async def create_chatbot_session(request: Request):
@@ -12,5 +13,6 @@ async def create_chatbot_session(request: Request):
     return {"session_id": session_id}
         
 
-async def get_chatbot_message(session_id: str, query: str):
-    ...
+async def get_chatbot_message(input_query: str):
+    response = chat_generation(input_query=input_query)
+    return response

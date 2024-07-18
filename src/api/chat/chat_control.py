@@ -38,9 +38,9 @@ async def create_chatbot_session(
     # responses      = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
 )
 async def create_chatbot_message(
-    session_id: str,
-    query: str,
+    # session_id: str,
+    input_query: str,
 ):
-    response = await chat_service.get_chatbot_message(session_id, query)
-    return ChatResponse(response=response)
+    response = await chat_service.get_chatbot_message(input_query)
+    return response
 
