@@ -80,17 +80,18 @@ async def create_teacher(
 # Update
 @router.put(
     "/update",
-    summary = "교원 개인정보 수정",
-    description = "- email이 일치하는 데이터의 비밀번호 수정",
-    responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
+    summary = "교원 비밀번호 수정",
+    description = "- 현재 로그인된 선생님의 비밀번호 수정",
+    responses=Status.docs(SU.CREATED, ER.UNAUTHORIZED)
 )
 async def update_teacher(
-    teacher_email: str,  # JWT 토큰에서 id 가져오는 방식으로 변경, 이건 임시조치
     teacher_info: Optional[UpdateTeacher],
+    current_user: dict = Security(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    logger.info("----------기존 교원 수정----------")
-    await teacher_service.update_teacher(teacher_email, teacher_info, db)
+    username = current_user['username']
+    logger.info("----------기존 교원 비밀번호 수정----------")
+    await teacher_service.update_teacher(teacher_info, username, db)
     return SU.SUCCESS
 
 '''

@@ -7,6 +7,7 @@ API 개발 시 참고 : 비즈니스 로직 작성, service에서 호출
 
 import logging
 from typing import List, Optional
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,17 +48,25 @@ async def get_existing_user(db: AsyncSession, teacher: CreateTeacher) -> Optiona
     return existing_teacher
         
 # Update
-async def update_teacher(teacher_email: str, teacher_info: UpdateTeacher, db: AsyncSession) -> None:
+async def update_teacher(teacher_info: UpdateTeacher, username: str, db: AsyncSession) -> None:
     
     # 기존 비밀번호 해시 값 가져오기
-    existing_teacher = await db.get(UserTeacher, teacher_email)
+    existing_teacher = await db.get(UserTeacher, username)
+    logger.info(existing_teacher)
     
+    # 현재 비밀번호 db와 비교
+    if not pwd_context.verify(teacher_info.teacher_password, existing_teacher.teacher_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
     # 새 비밀번호 해시화
-    new_password_hash = pwd_context.hash(teacher_info.teacher_password)
+    new_password_hash = pwd_context.hash(teacher_info.new_password)
     
     # 비밀번호 해시 값 업데이트
     existing_teacher.teacher_password = new_password_hash
-
     await db.commit()
     
 '''

@@ -28,7 +28,8 @@ async def create_teacher(teacher: CreateTeacher, db: AsyncSession) -> None:
 async def update_teacher(teacher_email: str, teacher_info: UpdateTeacher, db: AsyncSession) -> None:
     await teacher_dao.update_teacher(teacher_email, teacher_info, db)
     
-
+'''
 # Delete
 async def delete_teacher(teacher_email: str, db: AsyncSession) -> None:
     await teacher_dao.delete_teacher(teacher_email, db)
+'''

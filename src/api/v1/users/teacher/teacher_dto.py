@@ -8,7 +8,8 @@ class KeyTeacher(BaseModel):
 
 class UpdateTeacher(BaseModel):
     teacher_password: Annotated[Union[str, None], Field(description="교원 비밀번호")]
-
+    new_password:Annotated[Union[str, None], Field(description="교원 새 비밀번호")]
+    
 class CreateTeacher(KeyTeacher, UpdateTeacher):
     teacher_name: Annotated[Union[str, None], Field(description="교원 이름")]
     teacher_school: Annotated[Union[str, None], Field(description="교원 학교 이름")]
