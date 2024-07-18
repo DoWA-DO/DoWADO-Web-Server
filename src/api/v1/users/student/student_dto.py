@@ -10,7 +10,8 @@ class UpdateStudent(BaseModel):
     student_password: Annotated[Union[str, None], Field(description="학생 비밀번호")]
     new_password:Annotated[Union[str, None], Field(description="학생 새 비밀번호")]
 
-class CreateStudent(KeyStudent, UpdateStudent):
+class CreateStudent(KeyStudent):
+    student_password: Annotated[Union[str, None], Field(description="학생 비밀번호")]
     student_school: Annotated[Union[str, None], Field(description="학생 학교 이름")]
     student_name: Annotated[Union[str, None], Field(description="학생 이름")]
     student_password2: Annotated[Union[str, None], Field(description="학생 비밀번호 확인")]
