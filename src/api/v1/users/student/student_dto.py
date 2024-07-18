@@ -8,6 +8,7 @@ class KeyStudent(BaseModel):
 
 class UpdateStudent(BaseModel):
     student_password: Annotated[Union[str, None], Field(description="학생 비밀번호")]
+    new_password:Annotated[Union[str, None], Field(description="학생 새 비밀번호")]
 
 class CreateStudent(KeyStudent, UpdateStudent):
     student_school: Annotated[Union[str, None], Field(description="학생 학교 이름")]

@@ -51,17 +51,22 @@ async def get_existing_user(db: AsyncSession, teacher: CreateStudent) -> Optiona
     return existing_student
         
 # Update
-async def update_student(student_email: str, student_info: UpdateStudent, db: AsyncSession) -> None:
+async def update_student(student_info: UpdateStudent, username: str, db: AsyncSession) -> None:
     # 기존 비밀번호 해시 값 가져오기
-    existing_teacher = await db.get(UserStudent, student_email)
+    existing_student = await db.get(UserStudent, username)
+    logger.info(existing_student)
     
+    # 현재 비밀번호 db와 비교
+    if not pwd_context.verify(student_info.student_password, existing_student.student_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     # 새 비밀번호 해시화
-    new_password_hash = pwd_context.hash(student_info.teacher_password)
-    
+    new_password_hash = pwd_context.hash(student_info.new_password)
     # 비밀번호 해시 값 업데이트
-    existing_teacher.teacher_password = new_password_hash
-
-    await db.commit()
+    existing_student.student_password = new_password_hash
     await db.commit()
     
 '''
