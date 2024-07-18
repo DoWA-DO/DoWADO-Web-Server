@@ -9,9 +9,6 @@ class KeyStudent(BaseModel):
 class UpdateStudent(BaseModel):
     student_password: Annotated[Union[str, None], Field(description="학생 비밀번호")]
 
-class ReadStudentInfo(KeyStudent, UpdateStudent):
-    pass
-
 class CreateStudent(KeyStudent, UpdateStudent):
     student_school: Annotated[Union[str, None], Field(description="학생 학교 이름")]
     student_name: Annotated[Union[str, None], Field(description="학생 이름")]
@@ -38,3 +35,12 @@ class CreateStudent(KeyStudent, UpdateStudent):
         if 'student_password' in values and v != values['student_password']:
             raise ValueError('비밀번호가 일치하지 않습니다')
         return v
+
+class ReadStudentInfo(BaseModel):
+    student_school: str
+    student_name: str
+    student_email: str
+    student_grade: int
+    student_class: int
+    student_number: int
+    student_teacher_email: str

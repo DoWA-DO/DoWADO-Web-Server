@@ -8,9 +8,6 @@ class KeyTeacher(BaseModel):
 
 class UpdateTeacher(BaseModel):
     teacher_password: Annotated[Union[str, None], Field(description="교원 비밀번호")]
-    
-class ReadTeacherInfo(KeyTeacher, UpdateTeacher):
-    pass
 
 class CreateTeacher(KeyTeacher, UpdateTeacher):
     teacher_name: Annotated[Union[str, None], Field(description="교원 이름")]
@@ -19,7 +16,6 @@ class CreateTeacher(KeyTeacher, UpdateTeacher):
     teacher_grade: Annotated[Union[int, None], Field(description="교원 학년")]
     teacher_class: Annotated[Union[int, None], Field(description="교원 반")]
     
-
     @validator('teacher_email', 'teacher_password', 'teacher_password2', 'teacher_name', 'teacher_school')
     def not_empty(cls, v):
         if not v or not str(v).strip():
@@ -37,3 +33,10 @@ class CreateTeacher(KeyTeacher, UpdateTeacher):
         if 'teacher_password' in values and v != values['teacher_password']:
             raise ValueError('비밀번호가 일치하지 않습니다')
         return v
+    
+class ReadTeacherInfo(BaseModel):
+    teacher_name: str
+    teacher_email: str
+    teacher_school: str
+    teacher_grade: int
+    teacher_class: int

@@ -5,7 +5,8 @@ API 개발 시 참고 : 프론트엔드에서 http 엔드포인트를 통해 호
 """
 # 기본적으로 추가
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
+from src.api.v1.login.login_control import get_current_user
 from src.core.status import Status, SU, ER
 import logging
 
@@ -27,22 +28,31 @@ ALGORITHM = "HS256"
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/student", tags=["학생"])
 
-'''
+
 # Read
 @router.get(
     "/read",
-    summary="전체 학생 조회",
-    description="- 전체 학생 리스트 반환, 등록된 학생 없는 경우 `[]` 반환",
-    response_model=list[ReadStudentInfo],
-    responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
+    summary="개인 정보 조회",
+    description="- 개인 정보 조회",
+    response_model = ReadStudentInfo,
+    responses = Status.docs(SU.SUCCESS, ER.NOT_FOUND)
 )
-# 함수명 get, post, update, delete 중 1택 + 목적에 맞게 이름 작성
-async def get_student(db: AsyncSession = Depends(get_db)):
-    # 개발 중 logging 사용하고 싶을 때 이 코드 추가
-    logger.info("----------전체 학생 목록 조회----------")
-    student_info = await student_service.get_student(db)
-    return student_info
-'''
+
+async def get_student(
+    current_user: dict = Security(get_current_user),
+    db: AsyncSession = Depends(get_db)
+    )-> ReadStudentInfo:
+    logger.info("----------개인 정보 조회----------")
+    try:
+        username = current_user['username']
+        if username is None:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        student_info = await student_service.get_student(username, db)
+        logger.info(student_info)
+        return student_info
+    except Exception as e:
+        logger.error(f"Error getting teacher info: {e}")
+        raise HTTPException(status_code=404, detail="Teacher not found")
 
 # Create
 @router.post(

@@ -5,16 +5,18 @@ API 개발 시 참고 : 프론트엔드에서 http 엔드포인트를 통해 호
 """
 # 기본적으로 추가
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
+from src.api.v1.login.login_control import get_current_user
 from src.core.status import Status, SU, ER
 import logging
 
 # (db 세션 관련)이후 삭제 예정, 개발을 위해 일단 임시로 추가
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.database.model import UserTeacher
 from src.database.session import get_db
 
 # 호출할 모듈 추가
-from src.api.v1.users.teacher.teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
+from src.api.v1.users.teacher.teacher_dto import CreateTeacher, ReadTeacherInfo, UpdateTeacher
 from src.api.v1.users.teacher.teacher_dao import get_existing_user
 from src.api.v1.users.teacher import teacher_service
 
@@ -27,30 +29,38 @@ ALGORITHM = "HS256"
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/teacher", tags=["교직원"])
 
-'''
 # Read
 @router.get(
     "/read",
-    summary="전체 교원 조회",
-    description="- 전체 교원 리스트 반환, 등록된 교원이 없는 경우 `[]` 반환",
-    response_model=list[ReadTeacherInfo],
-    responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
+    summary = "개인 정보 조회",
+    description = "- 개인 정보 조회",
+    response_model = ReadTeacherInfo,
+    responses = Status.docs(SU.SUCCESS, ER.NOT_FOUND)
 )
-# 함수명 get, post, update, delete 중 1택 + 목적에 맞게 이름 작성
-async def get_teacher(db: AsyncSession = Depends(get_db)):
-    # 개발 중 logging 사용하고 싶을 때 이 코드 추가
-    logger.info("----------전체 교원 목록 조회----------")
-    teacher_info = await teacher_service.get_teacher(db)
-    return teacher_info
-'''
 
+async def get_teacher(
+    current_user: dict = Security(get_current_user),
+    db: AsyncSession = Depends(get_db)
+)-> ReadTeacherInfo:
+    logger.info("----------개인 정보 조회----------")
+    try:
+        username = current_user['username']
+        if username is None:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        teacher_info = await teacher_service.get_teacher(username, db)
+        logger.info(teacher_info)
+        return teacher_info
+    except Exception as e:
+        logger.error(f"Error getting teacher info: {e}")
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    
 # Create
 @router.post(
     "/signup",
-    summary="회원가입",
-    description="- String-Form / Boolean-Form / String-Form / String-Form / String-Form",
+    summary = "회원가입",
+    description = "- String-Form / Boolean-Form / String-Form / String-Form / String-Form",
     # response_model=ResultType, # -> 코드 미완성, 주석처리
-    responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
+    responses = Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
 )
 async def create_teacher(
     teacher: Optional[CreateTeacher],
@@ -70,8 +80,8 @@ async def create_teacher(
 # Update
 @router.put(
     "/update",
-    summary="교원 개인정보 수정",
-    description="- email이 일치하는 데이터의 비밀번호 수정",
+    summary = "교원 개인정보 수정",
+    description = "- email이 일치하는 데이터의 비밀번호 수정",
     responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
 )
 async def update_teacher(
