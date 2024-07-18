@@ -12,3 +12,4 @@ pytest-asyncio
 requests
 smtplib
 passlib
+pillow
