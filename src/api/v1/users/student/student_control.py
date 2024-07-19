@@ -49,7 +49,15 @@ async def get_student(
             raise HTTPException(status_code=401, detail="Unauthorized")
         student_info = await student_service.get_student(username, db)
         logger.info(student_info)
-        return student_info
+        return ReadStudentInfo(
+            student_email=student_info.student_email,
+            student_name=student_info.student_name,
+            student_school=student_info.student_school,
+            student_grade=student_info.student_grade,
+            student_class=student_info.student_class,
+            student_number=student_info.student_number,
+            student_teacher_email=student_info.student_teacher_email
+        )
     except Exception as e:
         logger.error(f"Error getting teacher info: {e}")
         raise HTTPException(status_code=404, detail="Teacher not found")
