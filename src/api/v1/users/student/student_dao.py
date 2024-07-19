@@ -40,15 +40,6 @@ async def create_student(student: CreateStudent, db: AsyncSession) -> None:
                    )
     db.add(db_user)
     await db.commit()
-    
-async def get_existing_user(db: AsyncSession, teacher: CreateStudent) -> Optional[UserStudent]: # 중복 예외 처리
-    query = select(UserStudent).where(
-        (UserStudent.student_name == teacher.student_name) |
-        (UserStudent.student_email == teacher.student_email)
-    )
-    result = await db.execute(query)
-    existing_student = result.scalars().first()
-    return existing_student
         
 # Update
 async def update_student(student_info: UpdateStudent, username: str, db: AsyncSession) -> None:

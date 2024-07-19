@@ -73,7 +73,7 @@ async def create_student(
     student: Optional[CreateStudent],
     db: AsyncSession = Depends(get_db)
 ):
-    logger.info("----------신규 학생 생성----------")    
+    logger.info("----------신규 학생 생성----------")
     
     await student_service.create_student(student, db)
     return SU.CREATED

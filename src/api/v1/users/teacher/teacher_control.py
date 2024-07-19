@@ -17,7 +17,6 @@ from src.database.session import get_db
 
 # 호출할 모듈 추가
 from src.api.v1.users.teacher.teacher_dto import CreateTeacher, ReadTeacherInfo, UpdateTeacher
-from src.api.v1.users.teacher.teacher_dao import get_existing_user
 from src.api.v1.users.teacher import teacher_service
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
@@ -73,11 +72,6 @@ async def create_teacher(
     db: AsyncSession = Depends(get_db)
 ):
     logger.info("----------신규 교원 생성----------")
-    
-    # 중복 여부 확인
-    existing_teacher = await get_existing_user(db, teacher)
-    if existing_teacher:
-        raise HTTPException(status_code=409, detail=ER.DUPLICATE_RECORD)
     
     await teacher_service.create_teacher(teacher, db)
     return SU.CREATED

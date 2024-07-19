@@ -37,15 +37,6 @@ async def create_teacher(teacher: CreateTeacher, db: AsyncSession) -> None:
                    )
     db.add(db_user)
     await db.commit()
-    
-async def get_existing_user(db: AsyncSession, teacher: CreateTeacher) -> Optional[UserTeacher]: # 중복 예외 처리
-    query = select(UserTeacher).where(
-        (UserTeacher.teacher_name == teacher.teacher_name) |
-        (UserTeacher.teacher_email == teacher.teacher_email)
-    )
-    result = await db.execute(query)
-    existing_teacher = result.scalars().first()
-    return existing_teacher
         
 # Update
 async def update_teacher(teacher_info: UpdateTeacher, username: str, db: AsyncSession) -> None:
