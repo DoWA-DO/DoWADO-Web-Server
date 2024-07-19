@@ -16,7 +16,6 @@ from src.database.session import get_db
 
 # 호출할 모듈 추가
 from src.api.v1.users.student.student_dto import ReadStudentInfo, CreateStudent, UpdateStudent
-from src.api.v1.users.student.student_dao import get_existing_user
 from src.api.v1.users.student import student_service
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
@@ -74,12 +73,7 @@ async def create_student(
     student: Optional[CreateStudent],
     db: AsyncSession = Depends(get_db)
 ):
-    logger.info("----------신규 학생 생성----------")
-    
-    # 중복 여부 확인
-    existing_student = await get_existing_user(db, student)
-    if existing_student:
-        raise HTTPException(status_code=409, detail=ER.DUPLICATE_RECORD)
+    logger.info("----------신규 학생 생성----------")    
     
     await student_service.create_student(student, db)
     return SU.CREATED

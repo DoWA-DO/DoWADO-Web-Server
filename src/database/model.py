@@ -13,7 +13,7 @@ class UserStudent(Base):
     __tablename__ = "user_student"
     
     student_email = Column(Text, primary_key=True, unique=True) # 학생 메일
-    student_name = Column(String, nullable=False) # 학생 이름
+    student_name = Column(String, unique=False, nullable=False) # 학생 이름
     student_school = Column(String, nullable=False) # 학생 학교 이름
     student_password = Column(String, nullable=False) # 학생 비밀번호
     student_grade = Column(Integer, nullable=False) # 학생 학년
@@ -26,7 +26,7 @@ class UserTeacher(Base):
     __tablename__ = "user_teacher"
     
     teacher_email = Column(Text, primary_key=True, unique=True) # 교원 메일
-    teacher_name = Column(String, nullable=False) # 교원 이름
+    teacher_name = Column(String, unique=False, nullable=False) # 교원 이름
     teacher_password = Column(String, nullable=False) # 교원 비밀번호
     teacher_school = Column(String, nullable=False) # 교원 학교 이름
     teacher_grade = Column(Integer, nullable=False) # 교원 학년
