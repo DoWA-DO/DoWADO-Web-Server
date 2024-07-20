@@ -107,12 +107,14 @@ class ChatGenerator:
         
     @classmethod
     def get_session_id(self):
+        ''' 새로운 채팅 세션 생성, 객체 생성 없이 호출 가능 '''
         session_id = str(uuid.uuid4())
         _logger.info(f"=>> 새로운 세션 ID 생성 : {session_id}")
         return session_id
         
 
     def generate_query(self, input_query: str) -> str:
+        ''' 챗봇에게 쿼리 전송 '''
         def get_session_history(session_id: str) -> RedisChatMessageHistory:
             return RedisChatMessageHistory(session_id=session_id, url=settings.Idx.REDIS_URL)
 
@@ -136,6 +138,7 @@ class ChatGenerator:
 
 chatbot_instances: Dict[str, ChatGenerator] = {}
 def init_chatbot_instance():
+    ''' ChatBase에 기반한 챗봇 객체 생성 '''
     chat_base = ChatBase()
     new_chatbot_instance = ChatGenerator(chat_base)
     session_id = new_chatbot_instance.session_id

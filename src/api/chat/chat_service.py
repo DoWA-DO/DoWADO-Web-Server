@@ -18,6 +18,7 @@ def create_chatbot_session():
 
 
 async def get_chatbot_message(session_id: str, input_query: str):
+    ''' 챗봇에게 채팅 쿼리 보내기 '''
     if session_id in chatbot_instances:
         response = chatbot_instances[session_id].generate_query(input_query=input_query)
         return ChatResponse(session_id=session_id, response=response)    

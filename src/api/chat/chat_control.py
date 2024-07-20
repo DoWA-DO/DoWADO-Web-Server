@@ -18,7 +18,7 @@ router = APIRouter(prefix="/careerchat", tags=["Career-Counseling-Chatbot"])
 @router.post(
     "/new-session",
     summary= "새로운 채팅 시작하기",
-    description= "- 새로운 채팅 세션 생성, ChatLog 테이블에 데이터 추가",
+    description= "- 새로운 채팅 세션 생성, 채팅을 위한 초기값들 초기화, ChatGenerator 객체 생성",
     responses=Status.docs(SU.SUCCESS)
 )
 def create_chatbot_session():    
