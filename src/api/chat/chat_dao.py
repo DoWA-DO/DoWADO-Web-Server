@@ -19,6 +19,8 @@ _logger = logging.getLogger(__name__)
 
 @rdb.dao(transactional=True)
 async def create_chatlog(session_id: str, chat_content: list, session: AsyncSession = rdb.inject_async()) -> None:
+    ''' ChatLOG 테이블에 미완료된(레포트를 생성하지 않은) 채팅 내역 저장하기 '''
+    
     # 먼저 해당 세션 ID가 존재하는지 확인
     existing_chatlog = await session.execute(select(ChatLog).where(ChatLog.chat_session_id == session_id))
     existing_chatlog = existing_chatlog.scalars().first()
@@ -46,3 +48,14 @@ async def create_chatlog(session_id: str, chat_content: list, session: AsyncSess
             "chat_status": chatlog.chat_status
         }))
         _logger.info(f'새로운 채팅 로그 삽입: {session_id}')
+        
+
+# 내가 작성한거 전부(학생)
+# 담당 학생들이 작성 완료한거(선생)
+@rdb.dao(transactional=True)
+async def get_chatlogs(session: AsyncSession = rdb.inject_async()) -> list:
+    ''' ChatLog 테이블 전체 항목 조회하기 '''
+    
+    result = await session.execute(select(ChatLog))
+    chatlogs = result.scalars().all()
+    return chatlogs

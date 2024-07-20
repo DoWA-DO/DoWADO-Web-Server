@@ -32,7 +32,7 @@ async def create_chatlog(session_id: str):
     if session_id in chatbot_instances:
         chat_generator = chatbot_instances[session_id]
         chat_content = chat_generator.get_chatlog_from_redis()
-        _logger.info(f'=>> 세션 ID : {session_id}, 채팅 이력 : {chat_content}')
+        _logger.info(f'=>> 세션 ID : {session_id}, 채팅이력 : {chat_content}')
         await chat_dao.create_chatlog(session_id, chat_content)
     else:
         _logger.error(f'입력 받은 session_id 에 chatbot_instance가 없습니다. session_id: {session_id}')

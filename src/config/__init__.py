@@ -16,6 +16,7 @@ import dacite
 from dotenv import load_dotenv
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings
+from typing import ClassVar
 
 
 # .env 파일에서 환경 변수 로드
@@ -36,11 +37,13 @@ class RDBSettings(BaseSettings):
     DB_PORT: str = "6024"
     DB_NAME: str = "postgres"
 
-# class JWTSettings(BaseSettings):
-#     JWT_SECRET_KEY: SecretStr
-#     JWT_ACCESS_EXPIRE_MIN: int = 5
-#     JWT_INV_ACCESS_EXPIRE_MIN: int = 1440
-#     JWT_SESSION_EXPIRE_MIN: int = 30
+class JWTSettings(BaseSettings):
+    JWT_SECRET_KEY: SecretStr # secret key 생성 : openssl rand -hex 32
+    JWT_ACCESS_TOKEN_EXPIRE_MIN: int = 60 * 24 # 24시간
+    JWT_ALGORITHM: ClassVar[str] = "HS256"
+    # JWT_INV_ACCESS_EXPIRE_MIN: int = 1440
+    # JWT_SESSION_EXPIRE_MIN: int = 30
+    
 
 # class SMTPSettings(BaseSettings):
 #     MAIL_USERNAME: str = "rpamaster@rbrain.co.kr"
@@ -69,7 +72,6 @@ class IdxSettings(BaseSettings):
     retriever_Q_search_type: str = "mmr"
     retriever_I_search_type: str = "similarity"
     
-    
     # Chat DB
     REDIS_URL: str = "redis://localhost:6379/0"
     REDIS_HOST: str = "localhost"
@@ -79,7 +81,7 @@ class IdxSettings(BaseSettings):
 class Settings(BaseSettings):
     general: GeneralSettings = GeneralSettings()
     rdb: RDBSettings = RDBSettings()
-    # jwt: JWTSettings = JWTSettings()
+    jwt: JWTSettings = JWTSettings()
     # mail: SMTPSettings = SMTPSettings()
     Idx: IdxSettings = IdxSettings()
     

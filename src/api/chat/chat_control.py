@@ -11,7 +11,7 @@ import logging
 
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/careerchat", tags=["Career-Counseling-Chatbot"])
+router = APIRouter(prefix="/careerchat", tags=["진로 추천 챗봇 관련 API"])
 
 
 # 유저 아이디(추후 로그인 정보 입력 받기)
