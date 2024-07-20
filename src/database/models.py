@@ -51,7 +51,7 @@ class ChatLog(Base):
     chat_session_id = Column(String(30), primary_key=True, nullable=False)
     chat_content = Column(JSON)
     chat_date = Column(DateTime(timezone=True))
-    chat_status = Column(Integer)
+    chat_status = Column(Boolean, default=False)  # False : 편집X True: 편집O
     student_email = Column(String(30), ForeignKey('user_students.student_email'))
     
     student = relationship('UserStudent', back_populates='chat_logs')

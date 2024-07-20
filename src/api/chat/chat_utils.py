@@ -4,6 +4,7 @@
 import openai
 import redis
 import uuid
+import pickle
 from typing import NewType
 from typing import Dict, List, Optional
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -18,17 +19,16 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from src.config import settings
 from src.database.session import DATABASE_URL
 from src.api.chat.chat_constants import contextualize_q_prompt, qa_prompt
+from src.api.chat.chat_dto import ChatRequest, ChatResponse
 import logging
 
 
 _logger = logging.getLogger(__name__)
 openai.api_key = settings.general.OPENAI_API_KEY
+redis_client = redis.Redis.from_url(settings.Idx.REDIS_URL)
 
-ChatID = NewType('ChatID', str)
+# ChatID = NewType('ChatID', str)
 
-# def generate_session_id() -> str:
-#     ''' UUID로 새로운 세션 ID 발급 '''
-#     return str(uuid.uuid4()) # 네트워크 상에서 중복되지 않는 고유 ID (범용 고유 식별자)
 
 class ChatBase:
     def __init__(self):
@@ -100,43 +100,45 @@ class ChatBase:
 
 
 
+class ChatGenerator:
+    def __init__(self, chat_base: ChatBase, session_id: str = None):
+        self.chat_base = chat_base
+        self.session_id = session_id or self.get_session_id()
+        
+    @classmethod
+    def get_session_id(self):
+        session_id = str(uuid.uuid4())
+        _logger.info(f"=>> 새로운 세션 ID 생성 : {session_id}")
+        return session_id
+        
 
-# 채팅 이어서, 저장?
-class ChatGenerator(ChatBase):
-    def __init__(self):
-        super().__init__()
-        self.session_id = self._generate_session_id()
-    
-    def _generate_session_id(self) -> ChatID:
-        ''' UUID로 새로운 세션 ID 발급 '''
-        return ChatID(str(uuid.uuid4())) # 네트워크 상에서 중복되지 않는 고유 ID (범용 고유 식별자)
-    
-    # @staticmethod    
-    def generate_query(self, input_query: str, session_id: str) -> dict:
+    def generate_query(self, input_query: str) -> str:
         def get_session_history(session_id: str) -> RedisChatMessageHistory:
             return RedisChatMessageHistory(session_id=session_id, url=settings.Idx.REDIS_URL)
 
-        # chat_history = self._get
-        
         conversational_rag_chain = RunnableWithMessageHistory(
-            self.chain,
-            get_session_history,                 # 메세지 기록 가져오는 함수
-            input_messages_key   = "input",   # 입력 메세지 키
-            output_messages_key  = "answer",  # 출력 메세지 키
-            history_messages_key = "chat_history", # 메세지 기록 키
+            self.chat_base.chain,
+            get_session_history,
+            input_messages_key="input",
+            history_messages_key="chat_history",
+            output_messages_key="answer"
         )
 
         response = conversational_rag_chain.invoke(
             {"input": input_query},
-            config={"configurable": {"session_id": session_id}}
+            config={"configurable": {"session_id": self.session_id}}
         )
 
         _logger.info(f'[응답 생성] 실제 모델 응답: response => \n{response}\n')
-        _logger.info(f"[응답 생성] 세션 ID [{session_id}]에서 답변을 생성했습니다.")
+        _logger.info(f"[응답 생성] 세션 ID [{self.session_id}]에서 답변을 생성했습니다.")
         return response["answer"]
 
 
-def chat_generation(input_query):
-    chat = ChatGenerator()
-    output_query = chat.generate_query(input_query=input_query, session_id=chat.session_id)
-    return output_query
+chatbot_instances: Dict[str, ChatGenerator] = {}
+def init_chatbot_instance():
+    chat_base = ChatBase()
+    new_chatbot_instance = ChatGenerator(chat_base)
+    session_id = new_chatbot_instance.session_id
+    chatbot_instances[session_id] = new_chatbot_instance
+    _logger.info(f'=>> ChatBot 객체 생성 : {new_chatbot_instance} for session_id: {session_id}')
+    return session_id

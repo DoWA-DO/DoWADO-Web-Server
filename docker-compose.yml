@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    container_name: pgsqldb
+    container_name: pgsqldb-dowado
     image: pgvector/pgvector:pg16 # ankane/pgvector:latest
     restart: unless-stopped
     volumes:
@@ -18,10 +18,9 @@ services:
       - default
 
   redis:
-    container_name: redisdb
+    container_name: redisdb-dowado
     image: redis/redis-stack:latest
     restart: unless-stopped
-    volumes:
     ports:
       - "6379:6379"
       - "8001:8001"

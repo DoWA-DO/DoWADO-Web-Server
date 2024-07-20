@@ -14,19 +14,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/careerchat", tags=["Career-Counseling-Chatbot"])
 
 
-
+# 유저 아이디(추후 로그인 정보 입력 받기)
 @router.post(
     "/new-session",
-    summary= "새로운 채팅 시작",
-    description= "- 새로운 채팅 세션 생성",
-    # response_model=
-    # responses=
+    summary= "새로운 채팅 시작하기",
+    description= "- 새로운 채팅 세션 생성, ChatLog 테이블에 데이터 추가",
+    responses=Status.docs(SU.SUCCESS)
 )
-async def create_chatbot_session(
-    request: Request
-):
-    response = await chat_service.create_chatbot_session(request)
-    return response
+def create_chatbot_session():    
+    session_id = chat_service.create_chatbot_session() 
+    return {"session_id" : session_id}
 
 
 
@@ -34,13 +31,13 @@ async def create_chatbot_session(
     "/chat",
     summary        = "진로 상담 챗봇에게 채팅 메시지 전송",
     description    = "- 채팅 메시지를 기입 후 전송하면, 챗봇의 답장이 반환됨.",
-    # response_model = ChatResponse,
-    # responses      = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
+    response_model = ChatResponse,
+    responses      = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
 )
 async def create_chatbot_message(
-    # session_id: str,
+    session_id: str,
     input_query: str,
 ):
-    response = await chat_service.get_chatbot_message(input_query)
+    response = await chat_service.get_chatbot_message(session_id, input_query)
     return response
 

@@ -8,11 +8,25 @@ from pydantic import Field, EmailStr, validator
 from src.config.dto import BaseDTO
 
 
+
+
+
+# class CreateChatInfo(BaseDTO):
+#     chat_session_id: Annotated[str, Form(description="채팅 아이디(세션 아이디)")]
+#     chat_status: Annotated[bool, Depends(lambda: True)] = Field(True, description="채팅 편집 가능(리포트 생성 전)")
+#     chat_date: Annotated[datetime, Depends(lambda: datetime.now(timezone.utc))] = Field(
+#         default_factory=lambda: datetime.now(timezone.utc), description="생성 시간"
+#     )
+    
+
+
 class ChatRequest(BaseDTO):
-    query: str
     session_id: str
+    query: str
+    
 
 
 class ChatResponse(BaseDTO):
-    response: str
     session_id: str
+    response: str
+    
