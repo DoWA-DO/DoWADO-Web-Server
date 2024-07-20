@@ -48,7 +48,7 @@ class UserStudent(Base):
 class ChatLog(Base):
     __tablename__ = 'chat_logs'
     
-    chat_session_id = Column(String(30), primary_key=True, nullable=False)
+    chat_session_id = Column(String(64), primary_key=True, nullable=False)
     chat_content = Column(JSON)
     chat_date = Column(DateTime(timezone=True))
     chat_status = Column(Boolean, default=False)  # False : 편집X True: 편집O

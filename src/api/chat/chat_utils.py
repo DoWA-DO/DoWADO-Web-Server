@@ -19,7 +19,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from src.config import settings
 from src.database.session import DATABASE_URL
 from src.api.chat.chat_constants import contextualize_q_prompt, qa_prompt
-from src.api.chat.chat_dto import ChatRequest, ChatResponse
 import logging
 
 
@@ -103,15 +102,18 @@ class ChatBase:
 class ChatGenerator:
     def __init__(self, chat_base: ChatBase, session_id: str = None):
         self.chat_base = chat_base
-        self.session_id = session_id or self.get_session_id()
+        self.session_id = session_id or self.create_session_id()
         
     @classmethod
-    def get_session_id(self):
+    def create_session_id(self):
         ''' 새로운 채팅 세션 생성, 객체 생성 없이 호출 가능 '''
         session_id = str(uuid.uuid4())
         _logger.info(f"=>> 새로운 세션 ID 생성 : {session_id}")
         return session_id
-        
+    
+    def get_session_id(self):
+        ''' 현재 객체의 session_id 반환 '''
+        return self.session_id
 
     def generate_query(self, input_query: str) -> str:
         ''' 챗봇에게 쿼리 전송 '''
@@ -131,10 +133,32 @@ class ChatGenerator:
             config={"configurable": {"session_id": self.session_id}}
         )
 
+        # redis에 채팅기록 저장
+        self.create_message_to_redis({"query": input_query, "response": response["answer"]})
+        
         _logger.info(f'[응답 생성] 실제 모델 응답: response => \n{response}\n')
         _logger.info(f"[응답 생성] 세션 ID [{self.session_id}]에서 답변을 생성했습니다.")
         return response["answer"]
 
+
+    def create_message_to_redis(self, message):
+        ''' Redis에 메시지 저장 '''
+        chat_history_key = f"chat_history:{self.session_id}"
+        redis_client.rpush(chat_history_key, pickle.dumps(message))
+    
+    
+    def get_chatlog_from_redis(self) -> list:
+        ''' Redis에서 현재 객체의 session_id에 해당하는 채팅 로그 가져오기 '''
+        chat_history_key = f"chat_history:{self.session_id}"
+        chat_log = redis_client.lrange(chat_history_key, 0, -1) # redis에서 모든 요소 가져옴
+        _logger.info(f'=>> Redis에서 불러온 채팅기록 : {chat_log}')
+        if not chat_log:
+            _logger.warning(f'채팅 기록이 비어 있습니다: {self.session_id}')
+        return [pickle.loads(log) for log in chat_log]          # 역직렬화된 채팅 로그 항목들의 리스트를 반환
+
+        
+    
+    
 
 chatbot_instances: Dict[str, ChatGenerator] = {}
 def init_chatbot_instance():
