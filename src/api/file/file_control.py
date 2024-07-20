@@ -9,7 +9,7 @@ from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import FileResponse
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/file", tags=["파일 업로드"])
+router = APIRouter(prefix="/file", tags=["프로필 이미지 업로드 API"])
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR,'static/')

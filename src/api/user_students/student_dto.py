@@ -1,5 +1,3 @@
-# student_dto.py
-
 from typing import Annotated, Union
 from pydantic import BaseModel, EmailStr, Field, validator
 
@@ -18,9 +16,9 @@ class CreateStudent(KeyStudent):
     student_grade: Annotated[Union[int, None], Field(description="학생 학년")]
     student_class: Annotated[Union[int, None], Field(description="학생 반")]
     student_number: Annotated[Union[int, None], Field(description="학생 번호")]
-    student_teacher_email: Annotated[Union[EmailStr, None], Field(description="담당 선생님 메일")]
 
-    @validator('student_email', 'student_password', 'student_password2', 'student_name', 'student_school', 'student_teacher_email')
+
+    @validator('student_email', 'student_password', 'student_password2', 'student_name', 'student_school')
     def not_empty(cls, v):
         if not v or not str(v).strip():
             raise ValueError('빈 값은 허용되지 않습니다.')
@@ -45,4 +43,3 @@ class ReadStudentInfo(BaseModel):
     student_grade: int
     student_class: int
     student_number: int
-    student_teacher_email: str

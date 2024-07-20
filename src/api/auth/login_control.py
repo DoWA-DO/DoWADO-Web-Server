@@ -1,136 +1,57 @@
 """
-NOTE: 리펙토링 작업 전
+계정 권한 인증 API (학생, 교사 로그인)
 """
-from typing import Union
-from fastapi import APIRouter, Depends, HTTPException, Security
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, Security, Request
 from src.config.status import Status, SU, ER
+from src.config import settings
+from src.config.security import JWT, Claims, Crypto, oauth2_scheme
+from src.api.auth import login_service
+from src.api.auth.login_dto import Credentials, Token
 import logging
-from datetime import timedelta, datetime
-# from sqlalchemy.ext.asyncio import AsyncSession
-# from src.database.session import get_db
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from jose import JWTError, jwt
-from src.config import settings 
-from src.api.user_teachers.teacher_dao import pwd_context
-from src.api.auth import login_dto, login_dao
-from src.api.auth.login_dto import Token
-
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
-ALGORITHM = "HS256"
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/login", tags=["로그인"])
+router = APIRouter(prefix="/auth", tags=["회원 권한 인증(로그인) API"], responses=Status.docs(SU.SUCCESS))
 
-STUDENT_SCOPE = "student"
-TEACHER_SCOPE = "teacher"
-
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/login",
-    scopes={"student": "Access as student", "teacher": "Access as teacher"}
-)
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    try:
-        payload = jwt.decode(token, settings.jwt.JWT_SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        scope: str = payload.get("scope")
-        if username is None or scope is None:
-            logger.error(f"Token validation failed for token: {token}")
-            raise HTTPException(
-                status_code=401,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        if scope == STUDENT_SCOPE:
-            tokenUrl = "/api/v1/login/student"
-        elif scope == TEACHER_SCOPE:
-            tokenUrl = "/api/v1/login/teacher"
-        else:
-            logger.error(f"Invalid scope: {scope}")
-            raise HTTPException(
-                status_code=401,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        logger.info(f"Current user retrieved: {username}, scope: {scope}, tokenUrl: {tokenUrl}")
-        return {"username": username, "scope": scope, "tokenUrl": tokenUrl}
-    
-    except JWTError:
-        logger.error(f"Token decoding failed for token: {token}")
-        raise HTTPException(
-            status_code=401,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-async def authenticate_user(username: str, password: str, scope: str):
-    if scope == STUDENT_SCOPE:
-        user = await login_dao.get_student_user(username)
-    elif scope == TEACHER_SCOPE:
-        user = await login_dao.get_teacher_user(username)
-    else:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid scope"
-        )
-
-    if not user or not pwd_context.verify(password, user[0]):
-        raise HTTPException(
-            status_code=401,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    logger.info(f"{scope.capitalize()} user authenticated: {username}")
-    return user[1]
-
-# 학생, 선생 api 각각 나누면 tokenurl에서 불러오는 게 불가능 -> 합쳐줌
 @router.post(
-    "/",
-    summary="로그인",
-    description="- 학생/선생에 따라 로그인",
-    response_model=login_dto.Token,
-    responses=Status.docs(SU.SUCCESS, ER.UNAUTHORIZED)
+    "/login",
+    summary="사용자 인증 후 토큰 발행",
+    description=f"- 로그인 성공 시 토큰 발행\n- 토큰 만료 시간은 {settings.jwt.JWT_ACCESS_TOKEN_EXPIRE_MIN}분",
+    response_model=Token,
+    responses=Status.docs(ER.NOT_FOUND, ER.INVALID_PASSWORD),
 )
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends()
-):
-    if form_data.scopes == ["student"]:
-        scope = STUDENT_SCOPE
-    elif form_data.scopes == ["teacher"]:
-        scope = TEACHER_SCOPE
-    else:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid scope"
-        )
-    username = await authenticate_user(form_data.username, form_data.password, scope)
-    data = {
-        "sub": username,
-        "scope": scope,
-        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    }
-    access_token = jwt.encode(data, settings.jwt.JWT_SECRET_KEY, algorithm=ALGORITHM)
-    logger.info("----------로그인----------")
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "username": username
-    }
+async def login(credentials: Annotated[Credentials, Depends()]) -> Token:
+    token = await login_service.login(credentials)
+    return token
+
+@router.get(
+    "/verify",
+    summary="토큰 유효성 확인",
+    description="- 토큰이 유효하지 않으면 에러 반환",
+    dependencies=[Depends(JWT.verify)],
+    responses=Status.docs(ER.INVALID_TOKEN, ER.NOT_TOKEN),
+)
+async def verify():
+    return SU.SUCCESS
+
+@router.get(
+    "/refresh",
+    summary="리프레시 토큰으로 토큰 재발급",
+    description=f"- 토큰 만료 시간은 {settings.jwt.JWT_ACCESS_TOKEN_EXPIRE_MIN}분",
+    response_model=Token,
+    responses=Status.docs(ER.INVALID_TOKEN, ER.NOT_TOKEN),
+)
+async def refresh(request: Request) -> Token:
+    claims = JWT.get_claims(request)
+    new_token = await login_service.refresh(claims)
+    return new_token
 
 @router.get(
     "/me",
     summary="사용자 정보 조회",
     description="- 토큰 정보를 이용하여 사용자 정보 조회",
-    response_model=login_dto.Token,
+    response_model=dict,
+    dependencies=[Depends(JWT.verify)],
 )
-async def read_users_me(current_user: dict = Security(get_current_user)):
-    return {
-        "access_token": "example_access_token",
-        "token_type": "bearer",
-        "username": current_user['username'],
-        "tokenUrl": current_user['tokenUrl'],
-        "scope": current_user['scope']
-    }
+async def read_users_me(current_user: Annotated[dict, Depends(JWT.get_current_user)]) -> dict:
+    return {"username": current_user['username'], "scope": current_user['scope']}

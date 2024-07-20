@@ -3,6 +3,7 @@
 """
 from src.core import DowaDOAPI
 from src.core import cors, error, event, router
+from fastapi.openapi.utils import get_openapi
 import logging
 
 
@@ -22,6 +23,31 @@ app.use(cors)
 app.use(error)
 app.use(router, base="./src/api")
 app.use(event)
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="Do:WADO API Server",
+        version="0.1",
+        description="Do:WADO 청소년 AI 진로 추천 서비스",
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    }
+    openapi_schema["security"] = [{"bearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+
+
 
 _logger.info('=>> 서버 시작 중...')
 

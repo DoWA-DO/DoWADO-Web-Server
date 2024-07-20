@@ -38,7 +38,7 @@ class RDBSettings(BaseSettings):
     DB_NAME: str = "postgres"
 
 class JWTSettings(BaseSettings):
-    JWT_SECRET_KEY: SecretStr # secret key 생성 : openssl rand -hex 32
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "default_secret_key") # secret key 생성 : openssl rand -hex 32
     JWT_ACCESS_TOKEN_EXPIRE_MIN: int = 60 * 24 # 24시간
     JWT_ALGORITHM: ClassVar[str] = "HS256"
     # JWT_INV_ACCESS_EXPIRE_MIN: int = 1440
