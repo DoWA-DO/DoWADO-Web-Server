@@ -24,7 +24,7 @@ langchain-postgres = "^0.0.9"
 psycopg = {extras = ["binary"], version = "^3.2.1"}
 pycryptodome = "^3.20.0"
 python-jose = "^3.3.0"
-passlib = "^1.7.4"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 pillow = "^10.4.0"
 bcrypt = "^4.1.3"
 

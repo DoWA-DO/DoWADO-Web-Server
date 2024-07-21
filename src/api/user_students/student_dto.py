@@ -1,24 +1,31 @@
 from typing import Annotated, Union
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import EmailStr, Field, validator
+from fastapi import Form
+from src.config.dto import BaseDTO
 
-class KeyStudent(BaseModel):
-    student_email: Annotated[Union[EmailStr, None], Field(description="학생 메일")]
 
-class UpdateStudent(BaseModel):
-    student_password: Annotated[Union[str, None], Field(description="학생 비밀번호")]
-    new_password:Annotated[Union[str, None], Field(description="학생 새 비밀번호")]
+class KeyStudent(BaseDTO):
+    student_email: Annotated[Union[EmailStr, None], Form(description="학생 메일")]
+
+class UpdateStudent(BaseDTO):
+    student_grade: Annotated[Union[int, None], Form(description="학생 학년")]
+    student_class: Annotated[Union[int, None], Form(description="학생 반")]
+    student_number: Annotated[Union[str, None], Form(description="학생 번호")]
+    student_name: Annotated[Union[str, None], Form(description="학생 이름")]
+    student_password: Annotated[Union[str, None], Form(description="학생 비밀번호")]
+    student_new_password: Annotated[Union[str, None], Form(description="학생 신규 비밀번호")]
 
 class CreateStudent(KeyStudent):
-    student_password: Annotated[Union[str, None], Field(description="학생 비밀번호")]
-    student_school: Annotated[Union[str, None], Field(description="학생 학교 이름")]
-    student_name: Annotated[Union[str, None], Field(description="학생 이름")]
-    student_password2: Annotated[Union[str, None], Field(description="학생 비밀번호 확인")]
-    student_grade: Annotated[Union[int, None], Field(description="학생 학년")]
-    student_class: Annotated[Union[int, None], Field(description="학생 반")]
-    student_number: Annotated[Union[int, None], Field(description="학생 번호")]
+    school_id: Annotated[Union[int, None], Form(description="학교 ID")]
+    student_grade: Annotated[Union[int, None], Form(description="학생 학년")]
+    student_class: Annotated[Union[int, None], Form(description="학생 반")]
+    student_number: Annotated[Union[int, None], Form(description="학생 번호")]
+    student_name: Annotated[Union[str, None], Form(description="학생 이름")]
+    student_password: Annotated[Union[str , None], Form(description="학생 비밀번호")]
+    student_password2: Annotated[Union[str, None], Form(description="학생 비밀번호 확인")]
+    
 
-
-    @validator('student_email', 'student_password', 'student_password2', 'student_name', 'student_school')
+    @validator('student_email', 'student_password', 'student_password2', 'student_name')
     def not_empty(cls, v):
         if not v or not str(v).strip():
             raise ValueError('빈 값은 허용되지 않습니다.')
@@ -36,8 +43,8 @@ class CreateStudent(KeyStudent):
             raise ValueError('비밀번호가 일치하지 않습니다')
         return v
 
-class ReadStudentInfo(BaseModel):
-    student_school: str
+class ReadStudentInfo(BaseDTO):
+    school_id: int
     student_name: str
     student_email: str
     student_grade: int

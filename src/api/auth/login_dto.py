@@ -1,13 +1,13 @@
 from typing import Annotated
 from fastapi import Form
-from src.config.dto import BaseDTO
+from pydantic import BaseModel
 
-class Credentials(BaseDTO):
-    username: Annotated[str, Form(description="사용자 이름")]
-    password: Annotated[str, Form(description="사용자 비밀번호")]
-    scope: Annotated[str, Form(description="사용자 범위 (학생 또는 교사)")]
 
-class Token(BaseDTO):
+class Credentials(BaseModel):
+    email: Annotated[str, Form(description="이메일")]
+    password: Annotated[str, Form(description="비밀번호")]
+    school_id: Annotated[int | None, Form(description="학교 ID")] = None
+
+class Token(BaseModel):
     access_token: str
-    token_type: str
-    username: str
+    refresh_token: str

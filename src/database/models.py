@@ -8,6 +8,20 @@ from datetime import datetime
 
 Base = declarative_base()
 
+
+'''
+학교 테이블
+'''
+class School(Base):
+    __tablename__ = 'schools'
+    
+    school_id = Column(Integer, primary_key=True, autoincrement=True)
+    school_name = Column(String(100), nullable=False, unique=True)
+    school_address = Column(Text, nullable=True)
+
+    teachers = relationship('UserTeacher', back_populates='school')
+    students = relationship('UserStudent', back_populates='school')
+
 '''
 유저 테이블
 '''
@@ -17,18 +31,18 @@ class UserTeacher(Base):
     teacher_email = Column(String(50), primary_key=True, nullable=False)
     teacher_name = Column(String(50), nullable=False)
     teacher_password = Column(String(128), nullable=False)
-    teacher_school = Column(Text, nullable=True)
+    school_id = Column(Integer, ForeignKey('schools.school_id'), nullable=False)
     teacher_grade = Column(Integer, nullable=False)
     teacher_class = Column(Integer, nullable=False)
     
+    school = relationship('School', back_populates='teachers')
     students = relationship('UserStudent', back_populates='teacher')
-
 
 class UserStudent(Base):
     __tablename__ = 'user_students'
     
     student_email = Column(String(50), primary_key=True, nullable=False)
-    student_school = Column(Text, nullable=True)
+    school_id = Column(Integer, ForeignKey('schools.school_id'), nullable=False)
     student_name = Column(String(50), nullable=False)
     student_password = Column(String(128), nullable=False)
     student_grade = Column(Integer, nullable=False)
@@ -36,6 +50,7 @@ class UserStudent(Base):
     student_number = Column(Integer, nullable=False)
     teacher_email = Column(String(50), ForeignKey('user_teachers.teacher_email'), nullable=True)
     
+    school = relationship('School', back_populates='students')
     teacher = relationship('UserTeacher', back_populates='students')
     chat_logs = relationship('ChatLog', back_populates='student')
     

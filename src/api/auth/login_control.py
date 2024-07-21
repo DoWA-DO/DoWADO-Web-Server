@@ -1,57 +1,66 @@
 """
-계정 권한 인증 API (학생, 교사 로그인)
+계정 권한 관련(로그인) API
 """
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Security, Request
-from src.config.status import Status, SU, ER
-from src.config import settings
-from src.config.security import JWT, Claims, Crypto, oauth2_scheme
+from fastapi import APIRouter, Depends, Path
+from src.config.security import JWT, Claims
 from src.api.auth import login_service
 from src.api.auth.login_dto import Credentials, Token
+from src.config.status import ER, SU, Status
 import logging
 
+
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/auth", tags=["회원 권한 인증(로그인) API"], responses=Status.docs(SU.SUCCESS))
+router = APIRouter(prefix="/auth", tags=["계정 권한 관련(로그인) API"], responses=Status.docs(SU.SUCCESS))
+
 
 @router.post(
     "/login",
-    summary="사용자 인증 후 토큰 발행",
-    description=f"- 로그인 성공 시 토큰 발행\n- 토큰 만료 시간은 {settings.jwt.JWT_ACCESS_TOKEN_EXPIRE_MIN}분",
+    summary="학생/교직원 공통 로그인 : 사용자 인증 후 토큰 발행",
+    description="- 로그인 성공 시 토큰이 발행됩니다.",
     response_model=Token,
-    responses=Status.docs(ER.NOT_FOUND, ER.INVALID_PASSWORD),
+    responses=Status.docs(ER.INVALID_REQUEST, ER.INVALID_TOKEN, ER.UNAUTHORIZED),
 )
 async def login(credentials: Annotated[Credentials, Depends()]) -> Token:
     token = await login_service.login(credentials)
     return token
 
+
+@router.post(
+    "/login-as-school",
+    summary="학교 권한 확인 후 토큰 재발행(교직원 전용)",
+    description="- 선택한 학교에 해당 사용자의 권한을 확인하고 토큰을 재발행.\n- 선생님이 선택된 경우 해당 API를 한번 더 호출함.",
+    dependencies=[Depends(JWT.verify)],
+    response_model=Token,
+    responses=Status.docs(ER.INVALID_TOKEN, ER.UNAUTHORIZED),
+)
+async def login_as_school(
+    school_id: Annotated[int, Path(description="학교 ID")], claims: Annotated[Claims, Depends(JWT.get_claims())]
+) -> Token:
+    claims.school_id = school_id
+    token = await login_service.login_as_school(claims)
+    return token
+
+
+@router.post(
+    "/refresh",
+    summary="리프레시 토큰으로 새로운 토큰 재발급",
+    description="- 로그인 상태를 유지하고자 할 때 해당 API 호출함.",
+    dependencies=[Depends(JWT.verify_by_refresh)],
+    response_model=Token,
+    responses=Status.docs(ER.INVALID_TOKEN, ER.UNAUTHORIZED, ER.NOT_FOUND),
+)
+async def refresh(claims: Annotated[Claims, Depends(JWT.get_claims())]) -> Token:
+    token = await login_service.refresh(claims)
+    return token
+
+
 @router.get(
     "/verify",
     summary="토큰 유효성 확인",
-    description="- 토큰이 유효하지 않으면 에러 반환",
+    description="- 발행된 토큰이 사용가능한지 확인합니다.(아직 로그인되어 있는지 확인)",
     dependencies=[Depends(JWT.verify)],
-    responses=Status.docs(ER.INVALID_TOKEN, ER.NOT_TOKEN),
+    responses=Status.docs(ER.INVALID_TOKEN, ER.UNAUTHORIZED),
 )
 async def verify():
     return SU.SUCCESS
-
-@router.get(
-    "/refresh",
-    summary="리프레시 토큰으로 토큰 재발급",
-    description=f"- 토큰 만료 시간은 {settings.jwt.JWT_ACCESS_TOKEN_EXPIRE_MIN}분",
-    response_model=Token,
-    responses=Status.docs(ER.INVALID_TOKEN, ER.NOT_TOKEN),
-)
-async def refresh(request: Request) -> Token:
-    claims = JWT.get_claims(request)
-    new_token = await login_service.refresh(claims)
-    return new_token
-
-@router.get(
-    "/me",
-    summary="사용자 정보 조회",
-    description="- 토큰 정보를 이용하여 사용자 정보 조회",
-    response_model=dict,
-    dependencies=[Depends(JWT.verify)],
-)
-async def read_users_me(current_user: Annotated[dict, Depends(JWT.get_current_user)]) -> dict:
-    return {"username": current_user['username'], "scope": current_user['scope']}
