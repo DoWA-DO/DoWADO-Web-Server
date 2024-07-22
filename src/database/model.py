@@ -39,9 +39,7 @@ class ChatLog(Base):
     __tablename__ = "chat_log"
     
     chat_session_id = Column(String, primary_key=True, nullable=False) # 채팅 고유 번호
-    chat_student_email  = Column(Text, ForeignKey('user_student.student_email'), nullable=False) # 학생 메일
+    chat_student_email  = Column(Text, nullable=False) # 학생 메일
     chat_content  = Column(JSONB, nullable=False) # 학생이 보낸 대화 
     chat_date = Column(DateTime, default=func.now()) # 대화 종료 일시 자동 기록
     chat_status =  Column(Boolean, default=False, nullable=False) # 리포트 생성 여부 (0:미생성, 1:생성)
-    
-    student = relationship("UserStudent", backref="chat_logs")

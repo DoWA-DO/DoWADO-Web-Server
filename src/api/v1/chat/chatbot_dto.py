@@ -5,7 +5,7 @@
 from datetime import datetime, timezone
 from typing import Optional, Annotated
 from fastapi import Depends, Form, Path
-from pydantic import Field, EmailStr, validators
+from pydantic import BaseModel, Field, EmailStr, ValidationError, validate_call, validators
 from src.database.dto import BaseDTO
 
 
@@ -31,3 +31,21 @@ class ChatResponse(BaseDTO):
     session_id: str
     response: str
     
+
+class ChatCreateResponse(BaseModel):
+    id: int
+    chat_student_email: str
+    chat_content: str
+    chat_response:str
+    chat_date: datetime
+    chat_status: int
+    
+    @validate_call
+    def foo(a: int):
+        return a
+    
+    try:
+        foo()
+    except ValidationError as exc:
+        print(repr(exc.errors()[0]['type']))
+        #> 'missing_argument'

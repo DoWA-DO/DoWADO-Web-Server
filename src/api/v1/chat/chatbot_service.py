@@ -2,12 +2,13 @@
 """
 진로 상담 챗봇 API - 서비스(비즈니스로직 처리)
 """
+from datetime import datetime
 from fastapi import Request
 from src.api.v1.chat import chatbot_dao, chatbot_utils
 from src.api.v1.chat.chatbot_dto import ChatRequest, ChatResponse
 from src.api.v1.chat.chatbot_utils import init_chatbot_instance, chatbot_instances, redis_client
 import logging
-
+from sqlalchemy.ext.asyncio import AsyncSession
 
 _logger = logging.getLogger(__name__)
 
@@ -17,24 +18,41 @@ def create_chatbot_session():
     return session_id
     
 
-
 async def get_chatbot_message(session_id: str, input_query: str):
     ''' 챗봇에게 채팅 쿼리 보내기 '''
-    if session_id in chatbot_instances:
-        response = chatbot_instances[session_id].generate_query(input_query=input_query)
-        return ChatResponse(session_id=session_id, response=response)    
-    else:
-        _logger.error(f'입력 받은 session_id 에 chatbot_instance가 없습니다. session_id: {session_id}')
-        return ChatResponse(session_id=session_id, response="챗봇 인스턴스가 없습니다.")
+    try:
+        chatbot_instance = chatbot_instances.get(session_id)
+        if not chatbot_instance:
+            _logger.error(f"입력 받은 session_id 에 chatbot_instance가 없습니다. session_id: {session_id}")
+            raise ValueError("챗봇 인스턴스가 없습니다.")
+        else:
+            _logger.info(f"chatbot_instance: {chatbot_instance}")
+        if session_id in chatbot_instances:
+            response = chatbot_instances[session_id].generate_query(input_query=input_query)
+            return ChatResponse(session_id=session_id, response=response)    
+        else:
+            _logger.error(f'입력 받은 session_id 에 chatbot_instance가 없습니다. session_id: {session_id}')
+            return ChatResponse(session_id=session_id, response="챗봇 인스턴스가 없습니다.")
+    except Exception as e:
+        _logger.error(f"채팅 로그 생성 중 오류 발생: {e}")
+        raise
     
     
-async def create_chatlog(session_id: str):
+async def create_chatlog(session_id: str, teacher_email: str, db: AsyncSession):
     ''' 진로상담 기록 DB에 저장하기 '''
-    if session_id in chatbot_instances:
-        chat_generator = chatbot_instances[session_id]
-        chat_content = chat_generator.get_chatlog_from_redis()
-        _logger.info(f'=>> 세션 ID : {session_id}, 채팅이력 : {chat_content}')
-        await chatbot_dao.create_chatlog(session_id, chat_content)
-    else:
-        _logger.error(f'입력 받은 session_id 에 chatbot_instance가 없습니다. session_id: {session_id}')
-        raise ValueError("챗봇 인스턴스가 없습니다.")
+    try:
+        chatbot_instance = chatbot_instances.get(session_id)
+        if not chatbot_instance:
+            _logger.error(f"입력 받은 session_id 에 chatbot_instance가 없습니다. session_id: {session_id}")
+            raise ValueError("챗봇 인스턴스가 없습니다.")
+        if session_id in chatbot_instances:
+            chat_generator = chatbot_instances[session_id]
+            chat_content = chat_generator.get_chatlog_from_redis()
+            _logger.info(f'=>> 세션 ID : {session_id}, 채팅이력 : {chat_content}')
+            await chatbot_dao.create_chatlog(session_id, teacher_email, chat_content, db)
+        else:
+            _logger.error(f'입력 받은 session_id 에 chatbot_instance가 없습니다. session_id: {session_id}')
+            raise ValueError("챗봇 인스턴스가 없습니다.")
+    except Exception as e:
+        _logger.error(f"채팅 로그 저장 중 오류 발생: {e}")
+        raise

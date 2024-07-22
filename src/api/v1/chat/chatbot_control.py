@@ -1,13 +1,19 @@
 """
 진로 상담 챗봇 API - 컨트롤러
 """
+import asyncio
+from datetime import datetime
 from typing import Annotated
 from typing import Optional
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Security
+import openai
+from src.api.v1.login.login_control import get_current_user
 from src.core.status import Status, SU, ER
 from src.api.v1.chat import chatbot_service
 from src.api.v1.chat.chatbot_dto import ChatRequest, ChatResponse
 import logging
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.database.session import get_db
 
 
 logger = logging.getLogger(__name__)
@@ -38,8 +44,14 @@ async def create_chatbot_message(
     session_id: str,
     input_query: str,
 ):
-    response = await chatbot_service.get_chatbot_message(session_id, input_query)
-    return response
+    try:
+        response = await chatbot_service.get_chatbot_message(session_id, input_query)
+        return response
+    except Exception as e:
+        logger.error(f"챗봇 세션 생성 중 오류 발생: {e}")
+        raise HTTPException(status_code=500, detail="챗봇 세션 생성 중 오류가 발생했습니다.")
+    # response = await chatbot_service.get_chatbot_message(session_id, input_query)
+    # return response
 
 
 
@@ -51,6 +63,9 @@ async def create_chatbot_message(
 )
 async def create_chatlog(
     session_id: str,
+    current_user: dict = Security(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    await chatbot_service.create_chatlog(session_id)
+    username = current_user['username']
+    await chatbot_service.create_chatlog(session_id, username, db)
     return SU.CREATED
