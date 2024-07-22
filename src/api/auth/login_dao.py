@@ -44,17 +44,6 @@ async def get_student(email: str, session: AsyncSession = rdb.inject_async()) ->
     :return: UserStudent 객체
     :raises NoResultFound: 학생을 찾지 못한 경우
     """
-    # try:
-    #     result: Result = await session.execute(
-    #         select(UserStudent).filter_by(student_email=email)
-    #     )
-    #     return result.scalar_one()
-    # except NoResultFound:
-    #     logger.error(f"No user found for email: {email}")
-    #     raise HTTPException(status_code=404, detail="User not found") from None
-    # except Exception as e:
-    #     logger.error(f"Error retrieving user: {e}")
-    #     raise HTTPException(status_code=500, detail="Internal Server Error") from None
     try:
         logger.info(f"Fetching student with email: {email}")
         result = await session.execute(select(UserStudent).where(UserStudent.student_email == email))

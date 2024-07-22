@@ -29,22 +29,6 @@ async def login(
     return token
 
 
-# @router.post(
-#     "/login-as-school",
-#     summary="학교 권한 확인 후 토큰 재발행(교직원 전용)",
-#     description="- 선택한 학교에 해당 사용자의 권한을 확인하고 토큰을 재발행.\n- 선생님이 선택된 경우 해당 API를 한번 더 호출함.",
-#     dependencies=[Depends(JWT.verify)],
-#     response_model=Token,
-#     responses=Status.docs(ER.INVALID_TOKEN, ER.UNAUTHORIZED),
-# )
-# async def login_as_school(
-#     school_id: Annotated[int, Path(description="학교 ID")], claims: Annotated[Claims, Depends(JWT.get_claims())]
-# ) -> Token:
-#     claims.school_id = school_id
-#     token = await login_service.login_as_school(claims)
-#     return token
-
-
 @router.post(
     "/refresh",
     summary="리프레시 토큰으로 새로운 토큰 재발급",
