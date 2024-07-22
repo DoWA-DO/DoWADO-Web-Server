@@ -1,88 +1,97 @@
+
 # from typing import Annotated, Union
-# from pydantic import BaseModel, EmailStr, Field, validator
+# from fastapi import Depends, Form, Path
+# from pydantic import BaseModel, EmailStr, Field, field_validator
 
 # class KeyTeacher(BaseModel):
-#     teacher_email: Annotated[Union[EmailStr, None], Field(description="교원 메일")]
+#     teacher_email: Annotated[Union[EmailStr, None], Form(description="교원 메일")]
 
 # class UpdateTeacher(BaseModel):
-#     teacher_password: Annotated[Union[str, None], Field(description="교원 비밀번호")]
-#     new_password:Annotated[Union[str, None], Field(description="교원 새 비밀번호")]
+#     teacher_password: Annotated[Union[str, None], Form(description="교원 비밀번호")]
+#     new_password: Annotated[Union[str, None], Form(description="교원 새 비밀번호")]
+
 
 # class CreateTeacher(KeyTeacher):
-#     teacher_password: Annotated[Union[str, None], Field(description="교원 비밀번호")]
-#     teacher_name: Annotated[Union[str, None], Field(description="교원 이름")]
-#     teacher_school: Annotated[Union[str, None], Field(description="교원 학교 이름")]
-#     teacher_password2: Annotated[Union[str, None], Field(description="교원 비밀번호 확인")]
-#     teacher_grade: Annotated[Union[int, None], Field(description="교원 학년")]
-#     teacher_class: Annotated[Union[int, None], Field(description="교원 반")]
+#     school_id: Annotated[Union[int, None], Form(description="학교 ID")]
+#     teacher_grade: Annotated[Union[int, None], Form(description="교원 학년")]
+#     teacher_class: Annotated[Union[int, None], Form(description="교원 반")]
+#     teacher_name: Annotated[Union[str, None], Form(description="교원 이름")]
+#     teacher_password: Annotated[Union[str, None], Form(description="교원 비밀번호")]
+#     teacher_password2: Annotated[Union[str, None], Form(description="교원 비밀번호 확인")]
 
-#     @validator('teacher_email', 'teacher_password', 'teacher_password2', 'teacher_name', 'teacher_school')
+#     @field_validator('teacher_email', 'teacher_password', 'teacher_password2', 'teacher_name')
 #     def not_empty(cls, v):
 #         if not v or not str(v).strip():
 #             raise ValueError('빈 값은 허용되지 않습니다.')
 #         return v
 
-#     @validator('teacher_grade', 'teacher_class')
+#     @field_validator('teacher_grade', 'teacher_class')
 #     def check_integer(cls, v):
 #         if v is not None and not isinstance(v, int):
 #             raise ValueError('정수 값이 필요합니다.')
 #         return v
 
-#     @validator('teacher_password2')
+#     @field_validator('teacher_password2')
 #     def passwords_match(cls, v, values, **kwargs):
 #         if 'teacher_password' in values and v != values['teacher_password']:
 #             raise ValueError('비밀번호가 일치하지 않습니다')
 #         return v
 
 # class ReadTeacherInfo(BaseModel):
+#     school_id: int
 #     teacher_name: str
 #     teacher_email: str
-#     teacher_school: str
 #     teacher_grade: int
 #     teacher_class: int
 
 
+
+# src/api/user_teachers/teacher_dto.py
 from typing import Annotated, Union
-from fastapi import Depends, Form, Path
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import EmailStr, Field, validator
+from fastapi import Form
+from src.config.dto import BaseDTO
 
-class KeyTeacher(BaseModel):
-    teacher_email: Annotated[Union[EmailStr, None], Form(description="교원 메일")]
+class KeyTeacher(BaseDTO):
+    teacher_email: Annotated[Union[EmailStr, None], Form(description="교직원 메일")]
 
-class UpdateTeacher(BaseModel):
-    teacher_password: Annotated[Union[str, None], Form(description="교원 비밀번호")]
-    new_password: Annotated[Union[str, None], Form(description="교원 새 비밀번호")]
-
+class UpdateTeacher(BaseDTO):
+    teacher_grade: Annotated[Union[int, None], Form(description="교직원 학년")]
+    teacher_class: Annotated[Union[int, None], Form(description="교직원 반")]
+    teacher_name: Annotated[Union[str, None], Form(description="교직원 이름")]
+    teacher_password: Annotated[Union[str, None], Form(description="교직원 비밀번호")]
+    teacher_new_password: Annotated[Union[str, None], Form(description="교직원 신규 비밀번호")]
 
 class CreateTeacher(KeyTeacher):
     school_id: Annotated[Union[int, None], Form(description="학교 ID")]
-    teacher_grade: Annotated[Union[int, None], Form(description="교원 학년")]
-    teacher_class: Annotated[Union[int, None], Form(description="교원 반")]
-    teacher_name: Annotated[Union[str, None], Form(description="교원 이름")]
-    teacher_password: Annotated[Union[str, None], Form(description="교원 비밀번호")]
-    teacher_password2: Annotated[Union[str, None], Form(description="교원 비밀번호 확인")]
+    teacher_grade: Annotated[Union[int, None], Form(description="교직원 학년")]
+    teacher_class: Annotated[Union[int, None], Form(description="교직원 반")]
+    teacher_name: Annotated[Union[str, None], Form(description="교직원 이름")]
+    teacher_password: Annotated[Union[str, None], Form(description="교직원 비밀번호")]
+    teacher_password2: Annotated[Union[str, None], Form(description="교직원 비밀번호 확인")]
 
-    @field_validator('teacher_email', 'teacher_password', 'teacher_password2', 'teacher_name')
+    @validator('teacher_email', 'teacher_password', 'teacher_password2', 'teacher_name')
     def not_empty(cls, v):
         if not v or not str(v).strip():
             raise ValueError('빈 값은 허용되지 않습니다.')
         return v
 
-    @field_validator('teacher_grade', 'teacher_class')
+    @validator('teacher_grade', 'teacher_class')
     def check_integer(cls, v):
         if v is not None and not isinstance(v, int):
             raise ValueError('정수 값이 필요합니다.')
         return v
 
-    @field_validator('teacher_password2')
+    @validator('teacher_password2')
     def passwords_match(cls, v, values, **kwargs):
         if 'teacher_password' in values and v != values['teacher_password']:
             raise ValueError('비밀번호가 일치하지 않습니다')
         return v
 
-class ReadTeacherInfo(BaseModel):
+class ReadTeacherInfo(BaseDTO):
     school_id: int
     teacher_name: str
     teacher_email: str
     teacher_grade: int
     teacher_class: int
+    is_verified: bool

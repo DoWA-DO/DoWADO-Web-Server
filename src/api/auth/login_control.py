@@ -1,11 +1,11 @@
 """
 계정 권한 관련(로그인) API
 """
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Path
 from src.config.security import JWT, Claims
 from src.api.auth import login_service
-from src.api.auth.login_dto import Credentials, Token
+from src.api.auth.login_dto import Credentials, Token, UserTypeInfo
 from src.config.status import ER, SU, Status
 import logging
 
@@ -21,25 +21,28 @@ router = APIRouter(prefix="/auth", tags=["계정 권한 관련(로그인) API"],
     response_model=Token,
     responses=Status.docs(ER.INVALID_REQUEST, ER.INVALID_TOKEN, ER.UNAUTHORIZED),
 )
-async def login(credentials: Annotated[Credentials, Depends()]) -> Token:
-    token = await login_service.login(credentials)
-    return token
-
-
-@router.post(
-    "/login-as-school",
-    summary="학교 권한 확인 후 토큰 재발행(교직원 전용)",
-    description="- 선택한 학교에 해당 사용자의 권한을 확인하고 토큰을 재발행.\n- 선생님이 선택된 경우 해당 API를 한번 더 호출함.",
-    dependencies=[Depends(JWT.verify)],
-    response_model=Token,
-    responses=Status.docs(ER.INVALID_TOKEN, ER.UNAUTHORIZED),
-)
-async def login_as_school(
-    school_id: Annotated[int, Path(description="학교 ID")], claims: Annotated[Claims, Depends(JWT.get_claims())]
+async def login(
+    credentials: Annotated[Credentials, Depends()], # 선택 우짜누 텍스트 입력 말고(유저 유형)
+    user_type: Optional[UserTypeInfo] = None
 ) -> Token:
-    claims.school_id = school_id
-    token = await login_service.login_as_school(claims)
+    token = await login_service.login(credentials, user_type)
     return token
+
+
+# @router.post(
+#     "/login-as-school",
+#     summary="학교 권한 확인 후 토큰 재발행(교직원 전용)",
+#     description="- 선택한 학교에 해당 사용자의 권한을 확인하고 토큰을 재발행.\n- 선생님이 선택된 경우 해당 API를 한번 더 호출함.",
+#     dependencies=[Depends(JWT.verify)],
+#     response_model=Token,
+#     responses=Status.docs(ER.INVALID_TOKEN, ER.UNAUTHORIZED),
+# )
+# async def login_as_school(
+#     school_id: Annotated[int, Path(description="학교 ID")], claims: Annotated[Claims, Depends(JWT.get_claims())]
+# ) -> Token:
+#     claims.school_id = school_id
+#     token = await login_service.login_as_school(claims)
+#     return token
 
 
 @router.post(

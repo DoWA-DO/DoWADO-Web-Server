@@ -62,3 +62,10 @@ async def update_student(email: str, student_info: UpdateStudent, session: Async
     await session.commit()  
 
     logger.info(f"학생 정보가 성공적으로 업데이트되었습니다: {existing_student}")
+    
+    
+@rdb.dao()
+async def check_duplicate_email(email: str, session: AsyncSession = rdb.inject_async()) -> bool:
+    result = await session.execute(select(UserStudent).where(UserStudent.student_email == email))
+    user = result.scalars().first()
+    return user is not None

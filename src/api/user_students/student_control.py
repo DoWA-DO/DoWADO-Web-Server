@@ -22,7 +22,7 @@ async def create_student(student_info: Annotated[CreateStudent, Depends()]):
     return SU.CREATED
 
 
-@router.get(
+@router.post(
     "/read",
     summary="개인 정보 조회",
     description="- 학생 개인 정보 조회",

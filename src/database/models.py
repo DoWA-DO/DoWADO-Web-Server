@@ -34,6 +34,7 @@ class UserTeacher(Base):
     school_id = Column(Integer, ForeignKey('schools.school_id'), nullable=False)
     teacher_grade = Column(Integer, nullable=False)
     teacher_class = Column(Integer, nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)  # 이메일 인증 여부 추가
     
     school = relationship('School', back_populates='teachers')
     students = relationship('UserStudent', back_populates='teacher')
@@ -82,3 +83,17 @@ class ChatReport(Base):
     chat_session_id = Column(String(64), ForeignKey('chat_logs.chat_session_id'), nullable=False)
     
     chat_log = relationship('ChatLog', back_populates='report')
+    
+    
+'''
+이메일 인증
+'''
+# src/database/models.py
+
+class EmailVerification(Base):
+    __tablename__ = 'email_verifications'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(50), nullable=False, unique=True)
+    verification_code = Column(String(10), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)

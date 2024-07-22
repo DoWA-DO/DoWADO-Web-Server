@@ -4,10 +4,11 @@ from sqlalchemy.exc import NoResultFound
 from src.database.models import UserTeacher, UserStudent, School
 from src.config.status import ER
 from src.database.session import AsyncSession, rdb
+from fastapi import HTTPException
 import logging
 
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 @rdb.dao()
 async def get_teacher(email: str, session: AsyncSession = rdb.inject_async()) -> UserTeacher:
@@ -20,12 +21,16 @@ async def get_teacher(email: str, session: AsyncSession = rdb.inject_async()) ->
     :raises NoResultFound: 교사를 찾지 못한 경우
     """
     try:
-        result: Result = await session.execute(
-            select(UserTeacher).filter_by(teacher_email=email)
-        )
-        return result.scalar_one()
-    except NoResultFound as err:
-        raise ER.NOT_FOUND.load() from err
+        logger.info(f"Fetching teacher with email: {email}")
+        result = await session.execute(select(UserTeacher).where(UserTeacher.teacher_email == email))
+        user = result.scalar_one_or_none()
+        if user is None:
+            logger.error(f"No teacher found for email: {email}")
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    except Exception as e:
+        logger.error(f"Error retrieving teacher: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error") from None
 
 
 
@@ -39,13 +44,28 @@ async def get_student(email: str, session: AsyncSession = rdb.inject_async()) ->
     :return: UserStudent 객체
     :raises NoResultFound: 학생을 찾지 못한 경우
     """
+    # try:
+    #     result: Result = await session.execute(
+    #         select(UserStudent).filter_by(student_email=email)
+    #     )
+    #     return result.scalar_one()
+    # except NoResultFound:
+    #     logger.error(f"No user found for email: {email}")
+    #     raise HTTPException(status_code=404, detail="User not found") from None
+    # except Exception as e:
+    #     logger.error(f"Error retrieving user: {e}")
+    #     raise HTTPException(status_code=500, detail="Internal Server Error") from None
     try:
-        result: Result = await session.execute(
-            select(UserStudent).filter_by(student_email=email)
-        )
-        return result.scalar_one()
-    except NoResultFound as err:
-        raise ER.NOT_FOUND.load() from err
+        logger.info(f"Fetching student with email: {email}")
+        result = await session.execute(select(UserStudent).where(UserStudent.student_email == email))
+        user = result.scalar_one_or_none()
+        if user is None:
+            logger.error(f"No student found for email: {email}")
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    except Exception as e:
+        logger.error(f"Error retrieving student: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error") from None
 
 
 
@@ -66,7 +86,7 @@ async def get_teacher_role(school_id: int, email: str, session: AsyncSession = r
         )
         return result.scalar_one()
     except NoResultFound as err:
-        raise ER.NOT_FOUND.load() from err
+        raise ER.NOT_FOUND from err
 
 
 
@@ -88,6 +108,6 @@ async def get_student_role(school_id: int, email: str, session: AsyncSession = r
         )
         return result.scalar_one()
     except NoResultFound as err:
-        raise ER.NOT_FOUND.load() from err
+        raise ER.NOT_FOUND from err
 
 
