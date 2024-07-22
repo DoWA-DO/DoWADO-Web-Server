@@ -13,9 +13,10 @@ router = APIRouter(prefix="/teacher", tags=["회원(교직원) 계정 관련 API
     "/sign-up",
     summary="회원가입",
     description="교직원 회원가입",
-    responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD)
+    responses=Status.docs(SU.CREATED, ER.DUPLICATE_RECORD),
+    status_code=201
 )
-async def create_teacher(teacher_info: Annotated[CreateTeacher, Depends()]):
+async def create_teacher(teacher_info: CreateTeacher): # Annotated[CreateTeacher, Depends()]
     logger.info("----------신규 교직원 생성----------")
     await teacher_service.create_teacher_service(teacher_info)
     return SU.CREATED
