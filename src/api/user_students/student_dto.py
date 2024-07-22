@@ -23,9 +23,9 @@ class CreateStudent(KeyStudent):
     student_name: Annotated[Union[str, None], Form(description="학생 이름")]
     student_password: Annotated[Union[str , None], Form(description="학생 비밀번호")]
     student_password2: Annotated[Union[str, None], Form(description="학생 비밀번호 확인")]
-    
+    student_teacher_email: Annotated[Union[EmailStr, None], Form(description="선생님 이메일")]  # 선생님 이메일 추가
 
-    @validator('student_email', 'student_password', 'student_password2', 'student_name')
+    @validator('student_email', 'student_password', 'student_password2', 'student_name', 'student_teacher_email')
     def not_empty(cls, v):
         if not v or not str(v).strip():
             raise ValueError('빈 값은 허용되지 않습니다.')
@@ -50,3 +50,9 @@ class ReadStudentInfo(BaseDTO):
     student_grade: int
     student_class: int
     student_number: int
+    student_teacher_email: str  # 선생님 이메일 추가
+
+
+class SchoolDTO(BaseDTO):
+    school_id: int
+    school_name: str

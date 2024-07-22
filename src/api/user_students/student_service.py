@@ -1,8 +1,9 @@
-from src.api.user_students.student_dto import ReadStudentInfo, CreateStudent, UpdateStudent
+from src.api.user_students.student_dto import ReadStudentInfo, CreateStudent, UpdateStudent, SchoolDTO
 from src.api.user_students import student_dao
 from fastapi import HTTPException
 from src.config.status import ER
 from src.config.security import Crypto
+from typing import List
 
 
 async def get_student(email: str) -> ReadStudentInfo:
@@ -26,3 +27,7 @@ async def create_student(student: CreateStudent) -> None:
     
 async def update_student(email: str, student_info: UpdateStudent) -> None:
     await student_dao.update_student(email, student_info)
+    
+
+async def get_student_list() -> List[SchoolDTO]:
+    return await student_dao.get_student_list()

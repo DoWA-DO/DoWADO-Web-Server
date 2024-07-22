@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from fastapi import HTTPException
 from src.database.session import AsyncSession, rdb
-from src.api.user_students.student_dto import CreateStudent, UpdateStudent
-from src.database.models import UserStudent
+from src.api.user_students.student_dto import CreateStudent, UpdateStudent, SchoolDTO
+from src.database.models import UserStudent, School
 from passlib.context import CryptContext
 import logging
 
@@ -69,3 +69,10 @@ async def check_duplicate_email(email: str, session: AsyncSession = rdb.inject_a
     result = await session.execute(select(UserStudent).where(UserStudent.student_email == email))
     user = result.scalars().first()
     return user is not None
+
+
+@rdb.dao()
+async def get_student_list(session: AsyncSession = rdb.inject_async()):
+    result = await session.execute(select(School))
+    schools = result.scalars().all()
+    return [SchoolDTO(school_id=school.school_id, school_name=school.school_name) for school in schools]
