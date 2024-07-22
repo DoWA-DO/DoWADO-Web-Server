@@ -6,7 +6,7 @@ from src.api.v1.users.teacher.teacher_control import router as teacher_router
 from src.api.v1.users.student.student_control import router as student_router
 from src.api.v1.login.login_control import router as login_router
 from src.api.v1.mail.mail_control import router as mail_router
-from src.api.v1.chatbot.chat_control import router as chatbot_router
+from src.api.v1.chat.chatbot_control import router as chatbot_router
 from src.api.v1.file.file_control import router as file_router
 
 router = APIRouter()

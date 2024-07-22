@@ -1,30 +1,33 @@
-# chatbot_dto.py
 
-from typing import Optional
-from pydantic import BaseModel
-from datetime import datetime
-from pydantic import ValidationError, validate_call
+"""
+진로 상담 챗봇 API - DTO(데이터 전송 객체 선언)
+"""
+from datetime import datetime, timezone
+from typing import Optional, Annotated
+from fastapi import Depends, Form, Path
+from pydantic import Field, EmailStr, validators
+from src.database.dto import BaseDTO
 
-class ChatCreateRequest(BaseModel):
-    chat_content: str
-    chat_status: int
 
-class ChatCreateResponse(BaseModel):
-    id: int
-    chat_student_email: str
-    chat_content: str
-    chat_response:str
-    chat_date: datetime
-    chat_status: int
+
+
+
+# class CreateChatInfo(BaseDTO):
+#     chat_session_id: Annotated[str, Form(description="채팅 아이디(세션 아이디)")]
+#     chat_status: Annotated[bool, Depends(lambda: True)] = Field(True, description="채팅 편집 가능(리포트 생성 전)")
+#     chat_date: Annotated[datetime, Depends(lambda: datetime.now(timezone.utc))] = Field(
+#         default_factory=lambda: datetime.now(timezone.utc), description="생성 시간"
+#     )
     
-    @validate_call
-    def foo(a: int):
-        return a
+
+
+class ChatRequest(BaseDTO):
+    session_id: str
+    query: str
     
-    try:
-        foo()
-    except ValidationError as exc:
-        print(repr(exc.errors()[0]['type']))
-        #> 'missing_argument'
-    
+
+
+class ChatResponse(BaseDTO):
+    session_id: str
+    response: str
     

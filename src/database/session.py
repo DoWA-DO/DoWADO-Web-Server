@@ -8,7 +8,7 @@ from src.core.config import settings
 
 # pip install asyncpg
 # url = postgresql+asyncpg://{user}:{pwd}@server/db name
-DATABASE_URL = settings.DATABASE_URL
+DATABASE_URL = settings.rdb.DATABASE_URL
 
 # 비동기 엔진 생성
 AsyncEngine = create_async_engine(

@@ -1,78 +1,56 @@
-# chatbot_control.py
-
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+"""
+진로 상담 챗봇 API - 컨트롤러
+"""
+from typing import Annotated
+from typing import Optional
+from fastapi import APIRouter, Depends, Request
 from src.core.status import Status, SU, ER
-from src.api.v1.login.login_control import get_current_user
-from src.api.v1.chat.chatbot_dto import ChatCreateRequest, ChatCreateResponse
-from src.api.v1.chat.chatbot_service import ChatService
+from src.api.v1.chat import chatbot_service
+from src.api.v1.chat.chatbot_dto import ChatRequest, ChatResponse
 import logging
 
+
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/chatbot", tags=["채팅"])
+router = APIRouter(prefix="/careerchat", tags=["진로 추천 챗봇 관련 API"])
 
-# Upload
+
+# 유저 아이디(추후 로그인 정보 입력 받기)
 @router.post(
-    "/upload",
-    summary="채팅 메시지 전송",
-    description="- 로그인된 사용자의 이름과 채팅 메시지를 Chat DB의 chat 테이블에 저장",
-    response_model=ChatCreateRequest, 
-    responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
+    "/new-session",
+    summary     = "새로운 채팅 시작하기 버튼",
+    description = "- 새로운 채팅 세션 생성, 채팅을 위한 초기값들 초기화, ChatGenerator 객체 생성",
+    responses   = Status.docs(SU.SUCCESS)
 )
-async def create_chat(
-    chat_request: ChatCreateRequest,
-    current_user: dict = Depends(get_current_user),
-    chat_service: ChatService = Depends(ChatService)
-):
-    try:
-        username = current_user.get('username')
-        return await chat_service.create_chat(username, chat_request)
-    except Exception as e:
-        logger.error(f"Error creating chat: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+def create_chatbot_session():    
+    session_id = chatbot_service.create_chatbot_session() 
+    return {"session_id" : session_id}
 
-# Read
-@router.get(
-    "/read",
-    summary="채팅 내역 조회",
-    description="- 모든 사용자의 채팅 내역 조회, 없으면 [] 출력",
-    response_model=List[ChatCreateResponse],
-    responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
-)
 
-async def read_chat(
-    current_user: dict = Depends(get_current_user),
-    chat_service: ChatService = Depends(ChatService)
-): 
-    username = current_user.get('username')
-    chats = await chat_service.read_chat(username)
-    return [
-        ChatCreateResponse(
-        id=chat.id,
-        chat_content=chat.chat_content,
-        chat_student_email=chat.chat_student_email,
-        chat_date=chat.chat_date,
-        chat_status=chat.chat_status 
-    ) for chat in chats
-    ]
-    
-# Delete
-@router.delete(
-    "/delete",
-    summary="채팅 내역 삭제",
-    description="- 현재 로그인된 사용자의 채팅 내역 전부 삭제",
-    responses=Status.docs(SU.SUCCESS, ER.INVALID_REQUEST)
+
+@router.post(
+    "/chat",
+    summary        = "진로 상담 챗봇에게 채팅 메시지 전송하기 버튼",
+    description    = "- 채팅 메시지를 기입 후 전송하면, 챗봇의 답장이 반환됨./ 이전 채팅 세션 이어서 채팅 가능",
+    response_model = ChatResponse,
+    responses      = Status.docs(SU.SUCCESS)
 )
-async def delete_chat(
-    current_user: dict = Depends(get_current_user),
-    chat_service: ChatService = Depends(ChatService)
+async def create_chatbot_message(
+    session_id: str,
+    input_query: str,
 ):
-    try:
-        username = current_user.get('username')
-        await chat_service.delete_chat(username)
-        return {"detail": "Chats deleted successfully"}
-    except Exception as e:
-        logger.error(f"Error deleting chats: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-    
-    
+    response = await chatbot_service.get_chatbot_message(session_id, input_query)
+    return response
+
+
+
+@router.post(
+    "/save-chatlog",
+    summary     = "채팅화면에서 뒤로가기 버튼 : 미완료된(진행중인) 진로상담 내용 임시 저장",
+    description = "- Redis에 임시 저장된 채팅 내용을 RDB에 저장/ 이전 채팅 이력 수정 후 다시 저장 가능",
+    responses   = Status.docs(SU.SUCCESS),
+)
+async def create_chatlog(
+    session_id: str,
+):
+    await chatbot_service.create_chatlog(session_id)
+    return SU.CREATED

@@ -1,46 +1,62 @@
-#chatbot_dao.py
 
-from sqlalchemy import delete, func, text
-from sqlalchemy.sql.expression import select
-from typing import List
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.api.v1.chat.chatbot_dto import ChatCreateRequest, ChatCreateResponse
+"""
+진로 상담 챗봇 API - DAO(ORM 쿼리문 작성)
+"""
+from sqlalchemy import Result, ScalarResult, select, update, insert, delete
+from sqlalchemy.orm import joinedload, query
+
 from src.database.model import ChatLog
-from datetime import datetime
+# from src.api.v1.chat.careerchat_dto import 
+# from src.database.session import AsyncSession, rdb
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timezone
+import json
+import logging
 
-class ChatDAO:
-    def __init__(self, db: AsyncSession):
-        self.db = db
 
-    #Create
-    async def create_chat(self, user_name: str, chat_request: ChatCreateRequest) -> ChatCreateResponse:
-        chat = ChatLog(
-            chat_content=chat_request.chat_content,
-            chat_student_email=user_name,
-            chat_date=datetime.now().replace(microsecond=0),
-            chat_status=0
-        )
-        self.db.add(chat)
-        await self.db.commit()
-        await self.db.refresh(chat)
-        return ChatCreateResponse(
-            id=chat.id,
-            chat_content=chat.chat_content,
-            chat_student_email=chat.chat_student_email,
-            chat_date=chat.chat_date,
-            chat_status=chat.chat_status 
-        )
-        
-    #Read    
-    async def get_chat_history(self, chat_user: str) -> List[ChatLog]:
-        chats = await self.db.execute(
-            select(ChatLog)
-            .where(ChatLog.chat_student_email == chat_user)
-            .order_by(ChatLog.chat_date.desc())
-        )
-        return chats.scalars().all()
+_logger = logging.getLogger(__name__)
+
+# @rdb.dao(transactional=True)
+async def create_chatlog(session_id: str, chat_content: list, db: AsyncSession) -> None:
+    ''' ChatLOG 테이블에 미완료된(레포트를 생성하지 않은) 채팅 내역 저장하기 '''
     
-    #Delete
-    async def delete_chats_by_user(self, chat_student_email: str) -> None:
-        await self.db.execute(delete(ChatLog).where(ChatLog.chat_student_email == chat_student_email)) # delete
-        await self.db.commit()
+    # 먼저 해당 세션 ID가 존재하는지 확인
+    existing_chatlog = await db.execute(select(ChatLog).where(ChatLog.chat_session_id == session_id))
+    existing_chatlog = existing_chatlog.scalars().first()
+
+    if existing_chatlog:
+        # 세션 ID가 존재하면 업데이트
+        await db.execute(update(ChatLog).where(ChatLog.chat_session_id == session_id).values(
+            chat_content=json.dumps(chat_content),
+            chat_date=datetime.now(timezone.utc),
+            chat_status=False
+        ))
+        _logger.info(f'기존 채팅 로그 업데이트: {session_id}')
+    else:
+        # 세션 ID가 존재하지 않으면 새로 삽입
+        chatlog = ChatLog(
+            chat_session_id=session_id,
+            chat_content=json.dumps(chat_content),
+            chat_date=datetime.now(timezone.utc),
+            chat_status=False
+        )
+        await db.execute(insert(ChatLog).values({
+            "chat_session_id": chatlog.chat_session_id,
+            "chat_content": chatlog.chat_content,
+            "chat_date": chatlog.chat_date,
+            "chat_status": chatlog.chat_status
+        }))
+        _logger.info(f'새로운 채팅 로그 삽입: {session_id}')
+        
+
+# 내가 작성한거 전부(학생)
+# 담당 학생들이 작성 완료한거(선생)
+# @rdb.dao(transactional=True)
+async def get_chatlogs(db: AsyncSession) -> list:
+    ''' ChatLog 테이블 전체 항목 조회하기 '''
+    
+    result = await db.execute(select(ChatLog))
+    chatlogs = result.scalars().all()
+    return chatlogs
