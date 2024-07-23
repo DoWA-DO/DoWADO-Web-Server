@@ -7,6 +7,7 @@ from src.config.security import JWT, Claims
 from src.api.auth import login_service
 from src.api.auth.login_dto import Credentials, Token, UserTypeInfo
 from src.config.status import ER, SU, Status
+from fastapi import Form
 import logging
 
 
@@ -22,9 +23,12 @@ router = APIRouter(prefix="/auth", tags=["계정 권한 관련(로그인) API"],
     responses=Status.docs(ER.INVALID_REQUEST, ER.INVALID_TOKEN, ER.UNAUTHORIZED),
 )
 async def login(
-    credentials: Annotated[Credentials, Depends()], # 선택 우짜누 텍스트 입력 말고(유저 유형)
-    user_type: Optional[UserTypeInfo] = None
+    email: Annotated[str, Form(description="이메일")],
+    password: Annotated[str, Form(description="비밀번호")], # credentials: Annotated[Credentials, Depends()],
+    user_type: Annotated[UserTypeInfo, Form()]  # 사용자 유형을 명시적으로 받도록 설정
 ) -> Token:
+    credentials = Credentials(email=email, password=password)
+    logger.info(f'=>> [control] 데이터입력 >> email, pw : {credentials}, type : {user_type}')
     token = await login_service.login(credentials, user_type)
     return token
 
