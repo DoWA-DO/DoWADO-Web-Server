@@ -61,3 +61,18 @@ async def create_chatlog(
     return SU.CREATED
 
 
+
+@router.post(
+    "/predict",
+    summary     = "채팅 로그 저장 및 진로 추천",
+    description = "- 채팅 로그를 저장하고 저장된 로그를 기반으로 모델 추론을 통해 진로를 추천합니다.",
+    dependencies=[Depends(JWT.verify)],
+    responses   = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
+)
+async def save_chatlog_and_get_recommendation(
+    user_id: Annotated[str, Depends(JWT.get_claims("user_id"))],
+    session_id: str,
+):
+    recommendation = await chat_service.save_chatlog_and_get_recommendation(session_id, user_id)
+    return recommendation
+

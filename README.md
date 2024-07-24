@@ -79,3 +79,9 @@
     - `dbeaver`을 열고 좌측 `Database Navigator`에서 `postgres_dowado` 를 우클릭한 후 `Edit-Connection`을 클릭한다.
     - 새로운 창이 열리면 좌측 하단의 `Test Connection`을 눌러서 정상적으로 연결되었는지 확인한다.
     - 이후 fastapi 서버를 실행하면 끝.
+
+
+
+
+
+(중요) 실행전에 models/model, models/tokenizer 디렉토리 만들고 코드 추가 필요(문의)

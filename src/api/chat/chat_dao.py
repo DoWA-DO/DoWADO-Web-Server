@@ -3,7 +3,7 @@
 """
 from sqlalchemy import Result, ScalarResult, select, update, insert, delete
 from sqlalchemy.orm import joinedload, query
-
+from typing import Optional
 from src.database.models import ChatLog
 # from src.api.v1.chat.careerchat_dto import 
 from src.database.session import AsyncSession, rdb
@@ -62,3 +62,11 @@ async def get_chatlogs(session: AsyncSession = rdb.inject_async()) -> list:
     result = await session.execute(select(ChatLog))
     chatlogs = result.scalars().all()
     return chatlogs
+
+
+@rdb.dao(transactional=True)
+async def get_chatlog_by_session_id(session_id: str, session: AsyncSession = rdb.inject_async()) -> Optional[ChatLog]:
+    ''' 특정 세션 ID에 대한 채팅 로그 가져오기 '''
+    result = await session.execute(select(ChatLog).where(ChatLog.chat_session_id == session_id))
+    chatlog = result.scalars().first()
+    return chatlog
