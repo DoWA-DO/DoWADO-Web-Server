@@ -18,7 +18,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 @rdb.dao(transactional=True)
-async def create_chatlog(session_id: str, chat_content: list, session: AsyncSession = rdb.inject_async()) -> None:
+async def create_chatlog(session_id: str, chat_content: list, student_email: str, session: AsyncSession = rdb.inject_async()) -> None:
     ''' ChatLOG 테이블에 미완료된(레포트를 생성하지 않은) 채팅 내역 저장하기 '''
     
     # 먼저 해당 세션 ID가 존재하는지 확인
@@ -30,7 +30,8 @@ async def create_chatlog(session_id: str, chat_content: list, session: AsyncSess
         await session.execute(update(ChatLog).where(ChatLog.chat_session_id == session_id).values(
             chat_content=json.dumps(chat_content),
             chat_date=datetime.now(timezone.utc),
-            chat_status=False
+            chat_status=False,
+            student_email=student_email
         ))
         _logger.info(f'기존 채팅 로그 업데이트: {session_id}')
     else:
@@ -39,13 +40,15 @@ async def create_chatlog(session_id: str, chat_content: list, session: AsyncSess
             chat_session_id=session_id,
             chat_content=json.dumps(chat_content),
             chat_date=datetime.now(timezone.utc),
-            chat_status=False
+            chat_status=False,
+            student_email=student_email
         )
         await session.execute(insert(ChatLog).values({
             "chat_session_id": chatlog.chat_session_id,
             "chat_content": chatlog.chat_content,
             "chat_date": chatlog.chat_date,
-            "chat_status": chatlog.chat_status
+            "chat_status": chatlog.chat_status,
+            "student_email": chatlog.student_email
         }))
         _logger.info(f'새로운 채팅 로그 삽입: {session_id}')
         
