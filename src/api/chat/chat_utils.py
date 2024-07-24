@@ -1,5 +1,5 @@
 """
-진로 상담 챗봇 API - 채팅 메시지 생성
+진로 상담 챗봇 관련 RAG 설정 및 유틸리티
 """
 import openai
 import redis
@@ -29,6 +29,9 @@ redis_client = redis.Redis.from_url(settings.Idx.REDIS_URL)
 # ChatID = NewType('ChatID', str)
 
 
+'''
+Langchain 사용을 위한 초기 설정
+'''
 class ChatBase:
     def __init__(self):
         self._SIMILARITY_THRESHOLD = 0.15
@@ -99,6 +102,9 @@ class ChatBase:
 
 
 
+'''
+챗봇 채팅 생성 관련
+'''
 class ChatGenerator:
     def __init__(self, chat_base: ChatBase, session_id: str = None):
         self.chat_base = chat_base
@@ -141,12 +147,13 @@ class ChatGenerator:
         return response["answer"]
 
 
+    # 유틸리티
     def create_message_to_redis(self, message):
         ''' Redis에 메시지 저장 '''
         chat_history_key = f"chat_history:{self.session_id}"
         redis_client.rpush(chat_history_key, pickle.dumps(message))
     
-    
+    # 유틸리티
     def get_chatlog_from_redis(self) -> list:
         ''' Redis에서 현재 객체의 session_id에 해당하는 채팅 로그 가져오기 '''
         chat_history_key = f"chat_history:{self.session_id}"
@@ -155,10 +162,8 @@ class ChatGenerator:
         if not chat_log:
             _logger.warning(f'채팅 기록이 비어 있습니다: {self.session_id}')
         return [pickle.loads(log) for log in chat_log]          # 역직렬화된 채팅 로그 항목들의 리스트를 반환
-
-        
     
-    
+                
 
 chatbot_instances: Dict[str, ChatGenerator] = {}
 def init_chatbot_instance():
@@ -169,3 +174,7 @@ def init_chatbot_instance():
     chatbot_instances[session_id] = new_chatbot_instance
     _logger.info(f'=>> ChatBot 객체 생성 : {new_chatbot_instance} for session_id: {session_id}')
     return session_id
+
+
+    
+    

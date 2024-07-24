@@ -48,8 +48,8 @@ async def create_chatbot_message(
 
 @router.post(
     "/save-chatlog",
-    summary     = "채팅화면에서 뒤로가기 버튼 : 미완료된(진행중인) 진로상담 내용 임시 저장",
-    description = "- Redis에 임시 저장된 채팅 내용을 RDB에 저장/ 이전 채팅 이력 수정 후 다시 저장 가능",
+    summary     = "미완료된(진행중인) 진로상담 내용 임시 저장",
+    description = "- Redis에 임시 저장된 채팅 내용을 RDB에 저장/ 이전 채팅 이력 수정 후 다시 저장 가능\n- 채팅화면에서 뒤로가기 버튼에 적용\n- 레포트 생성 버튼에 적용",
     dependencies=[Depends(JWT.verify)],
     responses   = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN),
 )
@@ -60,19 +60,4 @@ async def create_chatlog(
     await chat_service.create_chatlog(session_id, user_id)
     return SU.CREATED
 
-
-
-@router.post(
-    "/predict",
-    summary     = "채팅 로그 저장 및 진로 추천",
-    description = "- 채팅 로그를 저장하고 저장된 로그를 기반으로 모델 추론을 통해 진로를 추천합니다.",
-    dependencies=[Depends(JWT.verify)],
-    responses   = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
-)
-async def save_chatlog_and_get_recommendation(
-    user_id: Annotated[str, Depends(JWT.get_claims("user_id"))],
-    session_id: str,
-):
-    recommendation = await chat_service.save_chatlog_and_get_recommendation(session_id, user_id)
-    return recommendation
 
