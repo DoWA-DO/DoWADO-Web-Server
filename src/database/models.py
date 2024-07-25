@@ -76,10 +76,9 @@ class ChatReport(Base):
     __tablename__ = 'chat_reports'
     
     report_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
-    report_1st = Column(String(50), nullable=True)
-    report_2nd = Column(String(50), nullable=True)
-    report_3rd = Column(String(50), nullable=True)
-    report_info = Column(Text, nullable=True)
+    report_job_category = Column(Text, nullable=True)
+    report_job_info = Column(Text, nullable=True)
+    report_major = Column(Text, nullable=True)
     chat_session_id = Column(String(64), ForeignKey('chat_logs.chat_session_id'), nullable=False)
     
     chat_log = relationship('ChatLog', back_populates='report')

@@ -5,6 +5,7 @@ from jose import ExpiredSignatureError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
+
 class Claims(BaseModel):
     user_id: str
     email: str
@@ -20,6 +21,7 @@ class Claims(BaseModel):
         if isinstance(obj, dict) and 'role' in obj and isinstance(obj['role'], dict):
             obj['role'] = str(obj['role'])  # role 필드를 문자열로 변환
         return super().parse_obj(obj)
+
 
 class JWT:
     ALGORITHM = "HS256"
@@ -41,13 +43,17 @@ class JWT:
                 if sub == to_decode["sub"]:
                     request.state.claims = Claims.parse_obj(to_decode)
                 else:
-                    raise HTTPException(status_code=401, detail="Invalid token")
+                    raise HTTPException(
+                        status_code=401, detail="Invalid token")
             except ExpiredSignatureError as err:
-                raise HTTPException(status_code=401, detail="Token expired") from err
+                raise HTTPException(
+                    status_code=401, detail="Token expired") from err
             except Exception as err:
-                raise HTTPException(status_code=401, detail="Invalid token") from err
+                raise HTTPException(
+                    status_code=401, detail="Invalid token") from err
         else:
-            raise HTTPException(status_code=401, detail="Token not found", headers={"WWW-Authenticate": "Bearer"})
+            raise HTTPException(status_code=401, detail="Token not found", headers={
+                                "WWW-Authenticate": "Bearer"})
 
     @classmethod
     def verify(cls, request: Request, token: Annotated[str, Depends]):
@@ -79,9 +85,12 @@ class JWT:
 
     @classmethod
     def create_token(cls, claims: dict) -> Tuple[str, str]:
-        access_token = cls._create_token(sub="access", claims=claims, expires_delta=timedelta(minutes=15))
-        refresh_token = cls._create_token(sub="refresh", claims=claims, expires_delta=timedelta(days=30))
+        access_token = cls._create_token(
+            sub="access", claims=claims, expires_delta=timedelta(minutes=15))
+        refresh_token = cls._create_token(
+            sub="refresh", claims=claims, expires_delta=timedelta(days=30))
         return access_token, refresh_token
+
 
 class Crypto:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

@@ -1,8 +1,7 @@
 from typing import Annotated, Union
-from pydantic import EmailStr, Field, validator
+from pydantic import EmailStr, Field, BaseModel, ConfigDict, model_validator
 from fastapi import Form
 from src.config.dto import BaseDTO
-
 
 class KeyStudent(BaseDTO):
     student_email: Annotated[Union[EmailStr, None], Form(description="학생 메일")]
@@ -23,25 +22,32 @@ class CreateStudent(KeyStudent):
     student_name: Annotated[Union[str, None], Form(description="학생 이름")]
     student_password: Annotated[Union[str , None], Form(description="학생 비밀번호")]
     student_password2: Annotated[Union[str, None], Form(description="학생 비밀번호 확인")]
-    student_teacher_email: Annotated[Union[EmailStr, None], Form(description="선생님 이메일")]  # 선생님 이메일 추가
+    teacher_email: Annotated[Union[EmailStr, None], Form(description="선생님 이메일")]  # 필드 이름 수정
 
-    @validator('student_email', 'student_password', 'student_password2', 'student_name', 'student_teacher_email')
-    def not_empty(cls, v):
-        if not v or not str(v).strip():
-            raise ValueError('빈 값은 허용되지 않습니다.')
-        return v
+    @model_validator(mode='before')
+    @classmethod
+    def not_empty(cls, values):
+        required_fields = ['student_email', 'student_password', 'student_password2', 'student_name', 'teacher_email']
+        for field in required_fields:
+            if not values.get(field) or not str(values.get(field)).strip():
+                raise ValueError(f'{field}은(는) 빈 값일 수 없습니다.')
+        return values
 
-    @validator('student_grade', 'student_class', 'student_number')
-    def check_integer(cls, v):
-        if v is not None and not isinstance(v, int):
-            raise ValueError('정수 값이 필요합니다.')
-        return v
+    @model_validator(mode='before')
+    @classmethod
+    def check_integer(cls, values):
+        integer_fields = ['student_grade', 'student_class', 'student_number']
+        for field in integer_fields:
+            if values.get(field) is not None and not isinstance(values.get(field), int):
+                raise ValueError(f'{field}은(는) 정수 값이어야 합니다.')
+        return values
 
-    @validator('student_password2')
-    def passwords_match(cls, v, values, **kwargs):
-        if 'student_password' in values and v != values['student_password']:
+    @model_validator(mode='before')
+    @classmethod
+    def passwords_match(cls, values):
+        if values.get('student_password') != values.get('student_password2'):
             raise ValueError('비밀번호가 일치하지 않습니다')
-        return v
+        return values
 
 class ReadStudentInfo(BaseDTO):
     school_id: int
@@ -50,8 +56,7 @@ class ReadStudentInfo(BaseDTO):
     student_grade: int
     student_class: int
     student_number: int
-    student_teacher_email: str  # 선생님 이메일 추가
-
+    teacher_email: str  # 필드 이름 수정
 
 class SchoolDTO(BaseDTO):
     school_id: int

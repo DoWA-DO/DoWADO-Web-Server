@@ -6,9 +6,9 @@ from src.api.user_students import student_service
 from src.config.security import JWT, Claims
 import logging
 
-
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/student", tags=["회원(학생) 계정 관련 API"])
+
 
 @router.post(
     "/sign-up",
@@ -63,13 +63,11 @@ async def update_student_info(
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    
-
 
 
 @router.get(
-    "/school_list", 
-    summary="학교 목록 조회", 
+    "/school_list",
+    summary="학교 목록 조회",
     description="모든 학교의 목록을 조회합니다.(회원가입 시 체크박스 선택 용도)",
     response_model=List[SchoolDTO]
 )

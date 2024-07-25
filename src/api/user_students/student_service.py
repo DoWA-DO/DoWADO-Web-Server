@@ -16,18 +16,20 @@ async def get_student(email: str) -> ReadStudentInfo:
         student_email=student_info.student_email,
         student_grade=student_info.student_grade,
         student_class=student_info.student_class,
-        student_number=student_info.student_number
+        student_number=student_info.student_number,
+        teacher_email=student_info.teacher_email,  
     )
+
 
 async def create_student(student: CreateStudent) -> None:
     if await student_dao.check_duplicate_email(student.student_email):
         raise HTTPException(status_code=409, detail="Duplicate email")
     await student_dao.create_student(student)
-    
-    
+
+
 async def update_student(email: str, student_info: UpdateStudent) -> None:
     await student_dao.update_student(email, student_info)
-    
+
 
 async def get_student_list() -> List[SchoolDTO]:
     return await student_dao.get_student_list()
