@@ -1,3 +1,6 @@
+"""
+메일 인증 관련 API 라우터
+"""
 from fastapi import APIRouter
 from .mail_dto import EmailRequest
 from .mail_service import generate_verification_code, send_email

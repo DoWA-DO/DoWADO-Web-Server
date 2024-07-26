@@ -1,5 +1,5 @@
 """
-계정 권한 관련(로그인) API
+계정 권한 관련(로그인) API 라우터
 """
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Path

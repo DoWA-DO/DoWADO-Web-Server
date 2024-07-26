@@ -1,3 +1,6 @@
+"""
+교직원 계정 관련 API 라우터
+"""
 from typing import Optional, Annotated
 from fastapi import APIRouter, Depends, HTTPException, Security
 from src.config.status import Status, SU, ER

@@ -1,5 +1,6 @@
-# file_control.py
-
+"""
+파일 업로드(프로필 사진 업로드) 관련 API 라우터
+"""
 import datetime
 import logging
 import os

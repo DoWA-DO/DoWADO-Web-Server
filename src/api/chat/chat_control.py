@@ -1,5 +1,5 @@
 """
-진로 상담 챗봇 API - 컨트롤러
+진로 상담 챗봇 채팅 관련 API 라우터
 """
 from typing import Annotated
 from typing import Optional

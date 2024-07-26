@@ -28,6 +28,7 @@ async def create_student(student: CreateStudent, session: AsyncSession = rdb.inj
         student_email=student.student_email,
         student_name=student.student_name,
         student_password=pwd_context.hash(student.student_password),
+        teacher_email=student.student_teacher_email,
     )
     session.add(db_user)
     await session.commit()

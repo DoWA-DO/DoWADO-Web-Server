@@ -4,6 +4,10 @@ from fastapi import Depends, Request, HTTPException
 from jose import ExpiredSignatureError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
+from src.config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Claims(BaseModel):
     user_id: str
@@ -18,12 +22,12 @@ class Claims(BaseModel):
     @classmethod
     def parse_obj(cls, obj):
         if isinstance(obj, dict) and 'role' in obj and isinstance(obj['role'], dict):
-            obj['role'] = str(obj['role'])  # role 필드를 문자열로 변환
+            obj['role'] = str(obj['role']) # role 필드를 문자열로 변환
         return super().parse_obj(obj)
 
 class JWT:
     ALGORITHM = "HS256"
-    SECRET_KEY = "your-secret-key"  # Replace with your secret key
+    SECRET_KEY = settings.jwt.JWT_SECRET_KEY  # Replace with your actual secret key
 
     @classmethod
     def decode(cls, token: str) -> dict[str, Any]:
@@ -38,8 +42,9 @@ class JWT:
         if token:
             try:
                 to_decode = cls.decode(token)
-                if sub == to_decode["sub"]:
+                if sub == to_decode.get("sub"):
                     request.state.claims = Claims.parse_obj(to_decode)
+                    logger.info(f"=>> Claims set in request state: {request.state.claims}")
                 else:
                     raise HTTPException(status_code=401, detail="Invalid token")
             except ExpiredSignatureError as err:
@@ -52,14 +57,19 @@ class JWT:
     @classmethod
     def verify(cls, request: Request, token: Annotated[str, Depends]):
         cls._verify("access", request, token)
-
+        if not hasattr(request.state, "claims"):
+            raise HTTPException(status_code=401, detail="Claims not found")
     @classmethod
     def verify_by_refresh(cls, request: Request, token: Annotated[str, Depends]):
         cls._verify("refresh", request, token)
+        if not hasattr(request.state, "claims"):
+            raise HTTPException(status_code=401, detail="Claims not found")
 
     @classmethod
     def get_claims(cls, name: str | None = None) -> Callable[..., Claims]:
         def _get_claims(request: Request) -> Claims:
+            if not hasattr(request.state, "claims"):
+                raise HTTPException(status_code=401, detail="Claims not found")
             if name:
                 return getattr(request.state.claims, name)
             return request.state.claims
@@ -75,6 +85,7 @@ class JWT:
         # role 필드를 문자열로 변환
         if isinstance(to_encode.get("role"), dict):
             to_encode["role"] = str(to_encode["role"])
+        logger.debug(f"=>> Token claims before encoding: {to_encode}")
         return cls.encode(to_encode)
 
     @classmethod
