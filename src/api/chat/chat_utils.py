@@ -174,7 +174,3 @@ def init_chatbot_instance():
     chatbot_instances[session_id] = new_chatbot_instance
     _logger.info(f'=>> ChatBot 객체 생성 : {new_chatbot_instance} for session_id: {session_id}')
     return session_id
-
-
-    
-    
