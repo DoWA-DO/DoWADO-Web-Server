@@ -1,13 +1,14 @@
 """
 학생 계정 관련 API 라우터
 """
-from typing import Optional, Annotated, List
+from typing import Optional, Annotated, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Security
 from src.config.status import Status, SU, ER
 from src.api.user_students.student_dto import ReadStudentInfo, CreateStudent, UpdateStudent, SchoolDTO
 from src.api.user_students import student_service
-from src.config.security import JWT, Claims
+from src.config.security import JWT
 import logging
+from src.api.auth.login_service import get_current_user
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ router = APIRouter(prefix="/student", tags=["회원(학생) 계정 관련 API"])
 )
 async def create_student(student_info: CreateStudent):
     logger.info("----------신규 학생 생성----------")
-    await student_service.create_student(student_info)
+    await student_service.create_student_info(student_info)
     return SU.CREATED
 
 
@@ -30,14 +31,16 @@ async def create_student(student_info: CreateStudent):
     "/read",
     summary="개인 정보 조회",
     description="- 학생 개인 정보 조회",
+    # dependencies=[Depends(get_current_user)],
     dependencies=[Depends(JWT.verify)],
     response_model=ReadStudentInfo,
     responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
 )
-async def get_student_info(user_id: Annotated[str, Depends(JWT.get_claims("user_id"))]) -> ReadStudentInfo:
+async def get_student_info(claims: Annotated[Dict[str, Any], Depends(JWT.verify)]) -> ReadStudentInfo:
     logger.info("----------개인 정보 조회----------")
+    user_id = claims["email"]
     try:
-        student_info = await student_service.get_student(user_id)
+        student_info = await student_service.get_student_info(user_id)
         logger.info(student_info)
         return student_info
     except Exception as e:
@@ -53,12 +56,13 @@ async def get_student_info(user_id: Annotated[str, Depends(JWT.get_claims("user_
     responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND, ER.UNAUTHORIZED)
 )
 async def update_student_info(
-    user_id: Annotated[str, Depends(JWT.get_claims("user_id"))],
+    claims: Annotated[Dict[str, Any], Depends(JWT.verify)],
     student_info: Annotated[UpdateStudent, Depends()]
 ):
     logger.info("----------개인 정보 수정----------")
+    user_id = claims["email"]
     try:
-        await student_service.update_student(user_id, student_info)
+        await student_service.update_student_info(user_id, student_info)
         return SU.SUCCESS
     except HTTPException as e:
         logger.error(f"Error updating student info: {e.detail}")

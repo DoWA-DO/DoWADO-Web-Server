@@ -1,9 +1,9 @@
-from src.api.user_teachers.teacher_dao import get_teacher, create_teacher, save_verification_code, verify_email
+from src.api.user_teachers import teacher_dao
 from src.api.user_teachers.teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
 from fastapi import HTTPException
 
 async def get_teacher_info(email: str) -> ReadTeacherInfo:
-    teacher_info = await get_teacher(email)
+    teacher_info = await teacher_dao.get_teacher_info(email)
     if not teacher_info:
         raise HTTPException(status_code=404, detail="Teacher not found")
     return ReadTeacherInfo(
@@ -15,13 +15,18 @@ async def get_teacher_info(email: str) -> ReadTeacherInfo:
         is_verified=teacher_info.is_verified
     )
 
-async def create_teacher_service(teacher: CreateTeacher) -> None:
-    if await get_teacher(teacher.teacher_email):
+async def create_teacher_info(teacher_info: CreateTeacher) -> None:
+    if await teacher_dao.get_teacher_info(teacher_info.teacher_email):
         raise HTTPException(status_code=409, detail="Duplicate email")
-    await create_teacher(teacher)
+    await teacher_dao.create_teacher_info(teacher_info)
 
-async def save_verification_code_service(email: str, code: str) -> None:
-    await save_verification_code(email, code)
 
-async def verify_email_service(email: str, code: str) -> None:
-    await verify_email(email, code)
+async def update_teacher_info(email: str, teacher_info: UpdateTeacher) -> None:
+    await teacher_dao.update_teacher_info(email, teacher_info)
+
+
+async def save_verification_code(email: str, code: str) -> None:
+    await teacher_dao.save_verification_code(email, code)
+
+async def verify_email(email: str, code: str) -> None:
+    await teacher_dao.verify_email(email, code)

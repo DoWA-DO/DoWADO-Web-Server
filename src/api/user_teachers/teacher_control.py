@@ -1,12 +1,12 @@
 """
 교직원 계정 관련 API 라우터
 """
-from typing import Optional, Annotated
+from typing import Optional, Annotated, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Security
 from src.config.status import Status, SU, ER
 from src.api.user_teachers.teacher_dto import ReadTeacherInfo, CreateTeacher, UpdateTeacher
 from src.api.user_teachers import teacher_service
-from src.config.security import JWT, Claims
+from src.config.security import JWT
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,19 +21,20 @@ router = APIRouter(prefix="/teacher", tags=["회원(교직원) 계정 관련 API
 )
 async def create_teacher(teacher_info: CreateTeacher): # Annotated[CreateTeacher, Depends()]
     logger.info("----------신규 교직원 생성----------")
-    await teacher_service.create_teacher_service(teacher_info)
+    await teacher_service.create_teacher_info(teacher_info)
     return SU.CREATED
 
 @router.post(
     "/read",
     summary="개인 정보 조회",
     description="- 교직원 개인 정보 조회",
-    dependencies=[Depends(JWT.verify)],
+    # dependencies=[Depends(JWT.verify)],
     response_model=ReadTeacherInfo,
     responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND)
 )
-async def get_teacher_info(user_id: Annotated[str, Depends(JWT.get_claims("user_id"))]) -> ReadTeacherInfo:
+async def get_teacher_info(claims: Annotated[Dict[str, Any], Depends(JWT.verify)],) -> ReadTeacherInfo:
     logger.info("----------개인 정보 조회----------")
+    user_id = claims["email"]
     try:
         teacher_info = await teacher_service.get_teacher_info(user_id)
         logger.info(teacher_info)
@@ -50,12 +51,13 @@ async def get_teacher_info(user_id: Annotated[str, Depends(JWT.get_claims("user_
     responses=Status.docs(SU.SUCCESS, ER.NOT_FOUND, ER.UNAUTHORIZED)
 )
 async def update_teacher_info(
-    user_id: Annotated[str, Depends(JWT.get_claims("user_id"))],
+    claims: Annotated[Dict[str, Any], Depends(JWT.verify)],
     teacher_info: Annotated[UpdateTeacher, Depends()]
 ):
     logger.info("----------개인 정보 수정----------")
+    user_id = claims["email"]
     try:
-        await teacher_service.update_teacher_service(user_id, teacher_info)
+        await teacher_service.update_teacher_info(user_id, teacher_info)
         return SU.SUCCESS
     except HTTPException as e:
         logger.error(f"Error updating teacher info: {e.detail}")
@@ -73,7 +75,7 @@ async def update_teacher_info(
 async def verify_teacher_email(email: str, code: str):
     logger.info("----------이메일 인증----------")
     try:
-        await teacher_service.verify_email_service(email, code)
+        await teacher_service.verify_email(email, code)
         return SU.SUCCESS
     except HTTPException as e:
         logger.error(f"Error verifying email: {e.detail}")

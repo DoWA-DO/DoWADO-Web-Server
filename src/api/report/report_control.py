@@ -1,12 +1,12 @@
 """
 레포트(생성,조회) 관련 API 라우터
 """
-from typing import Annotated
+from typing import Annotated, Dict, Any
 from typing import Optional
 from fastapi import APIRouter, Depends, Request
 from src.config.status import Status, SU, ER
 from src.api.report import report_service
-from src.config.security import JWT, Claims
+from src.config.security import JWT
 from fastapi import HTTPException
 import logging
 
@@ -23,9 +23,10 @@ router = APIRouter(prefix="/report", tags=["진로 추천 레포트 관련 API"]
     responses   = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
 )
 async def save_chatlog_and_get_recommendation(
-    user_id: Annotated[str, Depends(JWT.get_claims("user_id"))],
+    claims: Annotated[Dict[str, Any], Depends(JWT.verify)],
     session_id: str,
 ):
+    user_id = claims["email"]
     recommendation = await report_service.save_chatlog_and_get_recommendation(session_id, user_id)
     return recommendation
 
@@ -38,8 +39,9 @@ async def save_chatlog_and_get_recommendation(
     responses=Status.docs(SU.SUCCESS, ER.INVALID_TOKEN, ER.NOT_FOUND)
 )
 async def get_chatlogs_by_teacher(
-    teacher_email: Annotated[str, Depends(JWT.get_claims("user_id"))]
+    claims: Annotated[Dict[str, Any], Depends(JWT.verify)],
 ):
+    teacher_email = claims["email"]
     chatlogs = await report_service.get_chatlogs_by_teacher(teacher_email)
     if not chatlogs:
         raise HTTPException(status_code=404, detail="채팅 기록을 찾을 수 없습니다.")

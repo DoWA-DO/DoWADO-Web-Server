@@ -50,7 +50,7 @@ class ReadStudentInfo(BaseDTO):
     student_grade: int
     student_class: int
     student_number: int
-    student_teacher_email: str  # 선생님 이메일 추가
+    teacher_email: str  # 선생님 이메일 추가
 
 
 class SchoolDTO(BaseDTO):

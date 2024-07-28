@@ -1,106 +1,120 @@
-from datetime import timedelta, datetime
-from typing import Annotated, Any, Callable, Tuple
-from fastapi import Depends, Request, HTTPException
-from jose import ExpiredSignatureError, jwt
+"""
+JWT 기반 로그인에 사용될 보안 모듈
+"""
+import jwt
+from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from pydantic import BaseModel
+from datetime import timedelta, datetime, timezone
+from typing import Annotated, Any, Callable, Tuple, Dict
+from fastapi import HTTPException, status, Depends, Request
+from fastapi.security import OAuth2PasswordBearer
 from src.config import settings
 import logging
 
+
 logger = logging.getLogger(__name__)
 
-class Claims(BaseModel):
-    user_id: str
-    email: str
-    school_id: int | None = None
-    role: str | None = None
+SECRET_KEY = settings.jwt.JWT_SECRET_KEY
+ALGORITHM = settings.jwt.JWT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 액세스 토큰의 만료 시간(분 단위)
+STUDENT_SCOPE = "student"
+TEACHER_SCOPE = "teacher"
 
-    class Config:
-        orm_mode = True
-        from_attributes = True
 
-    @classmethod
-    def parse_obj(cls, obj):
-        if isinstance(obj, dict) and 'role' in obj and isinstance(obj['role'], dict):
-            obj['role'] = str(obj['role']) # role 필드를 문자열로 변환
-        return super().parse_obj(obj)
-
-class JWT:
-    ALGORITHM = "HS256"
-    SECRET_KEY = settings.jwt.JWT_SECRET_KEY  # Replace with your actual secret key
-
-    @classmethod
-    def decode(cls, token: str) -> dict[str, Any]:
-        return jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
-
-    @classmethod
-    def encode(cls, data: dict) -> str:
-        return jwt.encode(data, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
-
-    @classmethod
-    def _verify(cls, sub: str, request: Request, token: str):
-        if token:
-            try:
-                to_decode = cls.decode(token)
-                if sub == to_decode.get("sub"):
-                    request.state.claims = Claims.parse_obj(to_decode)
-                    logger.info(f"=>> Claims set in request state: {request.state.claims}")
-                else:
-                    raise HTTPException(status_code=401, detail="Invalid token")
-            except ExpiredSignatureError as err:
-                raise HTTPException(status_code=401, detail="Token expired") from err
-            except Exception as err:
-                raise HTTPException(status_code=401, detail="Invalid token") from err
-        else:
-            raise HTTPException(status_code=401, detail="Token not found", headers={"WWW-Authenticate": "Bearer"})
-
-    @classmethod
-    def verify(cls, request: Request, token: Annotated[str, Depends]):
-        cls._verify("access", request, token)
-        if not hasattr(request.state, "claims"):
-            raise HTTPException(status_code=401, detail="Claims not found")
-    @classmethod
-    def verify_by_refresh(cls, request: Request, token: Annotated[str, Depends]):
-        cls._verify("refresh", request, token)
-        if not hasattr(request.state, "claims"):
-            raise HTTPException(status_code=401, detail="Claims not found")
-
-    @classmethod
-    def get_claims(cls, name: str | None = None) -> Callable[..., Claims]:
-        def _get_claims(request: Request) -> Claims:
-            if not hasattr(request.state, "claims"):
-                raise HTTPException(status_code=401, detail="Claims not found")
-            if name:
-                return getattr(request.state.claims, name)
-            return request.state.claims
-
-        return _get_claims
-
-    @classmethod
-    def _create_token(cls, sub: str, claims: dict, expires_delta: timedelta) -> str:
-        to_encode = {"sub": sub}
-        to_encode.update(claims)
-        to_encode.update({"iat": datetime.utcnow()})
-        to_encode.update({"exp": datetime.utcnow() + expires_delta})
-        # role 필드를 문자열로 변환
-        if isinstance(to_encode.get("role"), dict):
-            to_encode["role"] = str(to_encode["role"])
-        logger.debug(f"=>> Token claims before encoding: {to_encode}")
-        return cls.encode(to_encode)
-
-    @classmethod
-    def create_token(cls, claims: dict) -> Tuple[str, str]:
-        access_token = cls._create_token(sub="access", claims=claims, expires_delta=timedelta(minutes=15))
-        refresh_token = cls._create_token(sub="refresh", claims=claims, expires_delta=timedelta(days=30))
-        return access_token, refresh_token
+# OAuth2PasswordBearer: "/token" 엔드포인트를 사용하여 토큰을 얻도록 설정
+# 클라이언트가 토큰을 얻기 위해 이 URL을 호출
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/auth",
+    scopes={"student": "Access as student", "teacher": "Access as teacher"}
+)
 
 class Crypto:
+    '''
+    비밀번호 해싱 및 검증을 위한 클래스
+    '''
+    # 비밀번호 해싱 및 검증을 위한 PassLib 컨텍스트 생성
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+    
     @classmethod
-    def verify_password(cls, plain_password, hashed_password):
+    def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
+        '''
+        - 평문 비밀번호와 해싱된 비밀번호를 비교하는 함수
+        - 사용자가 입력한 비밀번호와 저장된 해시된 비밀번호를 비교
+        '''
         return cls.pwd_context.verify(plain_password, hashed_password)
 
     @classmethod
-    def hash_password(cls, password):
+    def get_password_hash(cls, password: str) -> str:
+        '''
+        - 비밀번호를 해싱하는 함수
+        - 새로운 사용자 생성 시 비밀번호를 해싱하여 저장
+        '''
         return cls.pwd_context.hash(password)
+
+    
+class JWT:
+    @staticmethod
+    def create_access_token(data: dict, expires_delta: timedelta | None = None):
+        '''
+        - JWT 액세스 토큰을 생성하는 함수
+        - 사용자 정보를 포함한 JWT 토큰을 생성하고 반환
+        '''
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.now(timezone.utc) + expires_delta
+        else:
+            expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+        to_encode.update({"exp": expire})
+        if "sub" not in to_encode or "scope" not in to_encode:
+            raise ValueError("Missing required claims: 'sub' or 'scope'")
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+
+
+    @staticmethod
+    def decode_token(token: str) -> dict:
+        """
+        - JWT 토큰을 디코딩 하는 함수
+        - 주어진 JWT 토큰을 해독하여 포함된 내용을 반환
+        - 유효하지 않은 토큰인 경우 HTTP 예외처리
+        """
+        try:
+            return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        except InvalidTokenError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    @staticmethod
+    async def verify(token: str = Depends(oauth2_scheme)) -> Dict[str, Any]:
+        """
+        - JWT 토큰에서 클레임을 추출하는 함수
+        """
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        try:
+            logger.debug(f"=>> 입력 받은 토큰: {token}")
+            if token.startswith("Bearer "):
+                token = token[7:]  # "Bearer " 부분을 잘라내고 토큰만 남김
+            payload = JWT.decode_token(token)
+            logger.debug(f"=>> payload 디코딩 결과 : {payload}")
+            
+            email: str = payload.get("sub")
+            scope: str = payload.get("scope")
+            
+            if email is None or scope is None:
+                logger.error("토큰에서 email, scope를 찾을 수 없습니다.")
+                raise credentials_exception 
+            
+            return {"email": email, "scope": scope}
+
+        except InvalidTokenError:
+            logger.error(f"=>> 토큰이 유효하지 않음")
+            raise credentials_exception
+    

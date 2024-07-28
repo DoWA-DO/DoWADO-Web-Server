@@ -12,33 +12,33 @@ logger = logging.getLogger(__name__)
 
 
 @rdb.dao()
-async def get_student(email: str, session: AsyncSession = rdb.inject_async()) -> UserStudent:
+async def get_student_info(email: str, session: AsyncSession = rdb.inject_async()) -> UserStudent:
     logger.info(f"해당 계정이 연결됨 -> {email}")
     result = await session.execute(select(UserStudent).where(UserStudent.student_email == email))
     return result.scalars().first()
 
 
 @rdb.dao()
-async def create_student(student: CreateStudent, session: AsyncSession = rdb.inject_async()) -> None:
+async def create_student_info(student_info: CreateStudent, session: AsyncSession = rdb.inject_async()) -> None:
     db_user = UserStudent(
-        school_id=student.school_id,
-        student_grade=student.student_grade,
-        student_class=student.student_class,
-        student_number=student.student_number,
-        student_email=student.student_email,
-        student_name=student.student_name,
-        student_password=pwd_context.hash(student.student_password),
-        teacher_email=student.student_teacher_email,
+        school_id=student_info.school_id,
+        student_grade=student_info.student_grade,
+        student_class=student_info.student_class,
+        student_number=student_info.student_number,
+        student_email=student_info.student_email,
+        student_name=student_info.student_name,
+        student_password=pwd_context.hash(student_info.student_password),
+        teacher_email=student_info.student_teacher_email,
     )
     session.add(db_user)
     await session.commit()
 
 
 @rdb.dao()
-async def update_student(email: str, student_info: UpdateStudent, session: AsyncSession = rdb.inject_async()) -> None:
-    existing_student = await get_student(email)  
+async def update_student_info(email: str, student_info: UpdateStudent, session: AsyncSession = rdb.inject_async()) -> None:
+    existing_student = await get_student_info(email)  
     if not existing_student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail="해당되는 학생을 찾을 수 없습니다.")
     
     if not pwd_context.verify(student_info.student_password, existing_student.student_password):
         raise HTTPException(
@@ -49,7 +49,7 @@ async def update_student(email: str, student_info: UpdateStudent, session: Async
 
 
     logger.info(f"기존 학생 정보: {existing_student}")
-
+    
     existing_student.student_grade = student_info.student_grade or existing_student.student_grade
     existing_student.student_class = student_info.student_class or existing_student.student_class
     existing_student.student_number = student_info.student_number or existing_student.student_number

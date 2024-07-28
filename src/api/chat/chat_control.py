@@ -2,12 +2,12 @@
 진로 상담 챗봇 채팅 관련 API 라우터
 """
 from typing import Annotated
-from typing import Optional
+from typing import Optional, Dict, Any
 from fastapi import APIRouter, Depends, Request
 from src.config.status import Status, SU, ER
 from src.api.chat import chat_service
 from src.api.chat.chat_dto import ChatRequest, ChatResponse
-from src.config.security import JWT, Claims
+from src.config.security import JWT
 import logging
 
 
@@ -54,9 +54,10 @@ async def create_chatbot_message(
     responses   = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN),
 )
 async def create_chatlog(
-    user_id: Annotated[str, Depends(JWT.get_claims("user_id"))],
+    claims: Annotated[Dict[str, Any], Depends(JWT.verify)],
     session_id: str,
 ):
+    user_id = claims["email"]
     await chat_service.create_chatlog(session_id, user_id)
     return SU.CREATED
 
