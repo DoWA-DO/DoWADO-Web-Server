@@ -12,8 +12,6 @@ import json
 
 _logger = logging.getLogger(__name__)
 
-# 임시
-DOCKER_URL = "http://localhost:8000"
 
 def create_chatbot_session():
     ''' 새로운 ChatBase 객체 생성 -> 새로운 채팅 세션 생성 '''

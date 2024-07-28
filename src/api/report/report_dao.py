@@ -63,6 +63,24 @@ async def get_chatlogs_by_teacher(teacher_email: str, session: AsyncSession = rd
 
 
 @rdb.dao()
+async def search_chatlogs_by_teacher(teacher_email: str, search_type: str, search_query: str, session: AsyncSession = rdb.inject_async()):
+    ''' 이름 또는 이메일로 학생의 채팅 로그 검색 '''
+    query = select(ChatLog).join(UserStudent, ChatLog.student_email == UserStudent.student_email)
+    
+    if search_type == "name":
+        query = query.where(UserStudent.student_name.ilike(f"%{search_query}%"))
+    elif search_type == "email":
+        query = query.where(UserStudent.student_email.ilike(f"%{search_query}%"))
+
+    query = query.where(UserStudent.teacher_email == teacher_email)  # 담당 학생 필터
+    query = query.where(ChatLog.chat_status == True)  # chat_status가 True인 항목만
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+
+@rdb.dao()
 async def get_chatlogs_by_student(student_email: str, session: AsyncSession = rdb.inject_async()):
     ''' 학생 이메일로 해당 학생의 채팅 로그 조회 '''
     result = await session.execute(

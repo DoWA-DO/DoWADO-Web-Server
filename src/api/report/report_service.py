@@ -7,6 +7,7 @@ from src.utils.data_processing import preprocess_text_kiwi, label_decoding
 from src.api.chat import chat_dao
 from src.api.chat.chat_utils import chatbot_instances
 from src.api.report import report_dao
+from typing import Optional
 
 import requests
 import json
@@ -55,7 +56,6 @@ async def save_chatlog_and_get_recommendation(session_id: str, student_email: st
         """
         
         # 레포트 생성
-        
         return {'prediction': pred_decoded}
         # report = 
         # return {"prediction": pred_decoded, "report": report}
@@ -64,11 +64,17 @@ async def save_chatlog_and_get_recommendation(session_id: str, student_email: st
         raise ValueError("챗봇 인스턴스가 없습니다.")
 
 
-
-
 async def get_chatlogs_by_teacher(teacher_email: str):
     ''' 선생님이 담당하는 학생들의 채팅 로그를 조회 '''
     chat_logs = await report_dao.get_chatlogs_by_teacher(teacher_email)
+    return chat_logs
+
+
+async def search_chatlogs_by_teacher(teacher_email: str, search_type: str, search_query: Optional[str]):
+    ''' 선생님이 이름 또는 이메일(아이디)로 학생의 채팅 로그를 검색 '''
+    if not search_query:
+        return []
+    chat_logs = await report_dao.search_chatlogs_by_teacher(teacher_email, search_type, search_query)
     return chat_logs
 
 
