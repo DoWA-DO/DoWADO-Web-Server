@@ -85,7 +85,8 @@ async def search_chatlogs_by_teacher(teacher_email: str, search_type: str, searc
 async def get_chatlogs_by_student(student_email: str, session: AsyncSession = rdb.inject_async()):
     ''' 학생 이메일로 해당 학생의 채팅 로그 조회 '''
     result = await session.execute(
-        select(ChatLog)
+        select(ChatLog, UserStudent.student_name)  # student_name도 선택
+        .join(UserStudent, ChatLog.student_email == UserStudent.student_email)
         .where(ChatLog.student_email == student_email)
     )
-    return result.scalars().all()
+    return [{'chat': chat, 'student_name': student_name} for chat, student_name in result]
