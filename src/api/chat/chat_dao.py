@@ -17,6 +17,16 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+@rdb.dao()
+async def get_chatlog_status(session_id: str, session: AsyncSession = rdb.inject_async()) -> bool:
+    ''' chat_status 확인  True(레포트 생성완료), False(레포트 생성 전)'''
+    result = await session.execute(select(ChatLog.chat_status).where(ChatLog.chat_session_id == session_id))
+    chat_log = result.scalar_one_or_none()
+    if chat_log is not None and chat_log == True:
+        return True
+    return False
+
+
 @rdb.dao(transactional=True)
 async def create_chatlog(session_id: str, chat_content: list, student_email: str, session: AsyncSession = rdb.inject_async()) -> None:
     ''' ChatLOG 테이블에 미완료된(레포트를 생성하지 않은) 채팅 내역 저장하기 '''

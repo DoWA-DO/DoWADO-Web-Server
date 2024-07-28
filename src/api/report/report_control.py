@@ -46,3 +46,20 @@ async def get_chatlogs_by_teacher(
     if not chatlogs:
         raise HTTPException(status_code=404, detail="채팅 기록을 찾을 수 없습니다.")
     return chatlogs
+
+
+@router.get(
+    "/student/chatlogs",
+    summary="학생이 자신의 채팅 로그 조회",
+    description="- 학생 이메일로 해당 학생의 채팅 로그를 조회",
+    dependencies=[Depends(JWT.verify)],
+    responses=Status.docs(SU.SUCCESS, ER.INVALID_TOKEN, ER.NOT_FOUND)
+)
+async def get_chatlogs_by_student(
+    claims: Annotated[Dict[str, Any], Depends(JWT.verify)],
+):
+    student_email = claims["email"]
+    chatlogs = await report_service.get_chatlogs_by_student(student_email)
+    if not chatlogs:
+        raise HTTPException(status_code=404, detail="채팅 기록을 찾을 수 없습니다.")
+    return chatlogs

@@ -65,7 +65,7 @@ class ChatLog(Base):
     chat_session_id = Column(String(64), primary_key=True, nullable=False)
     chat_content = Column(JSON, nullable=False)
     chat_date = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    chat_status = Column(Boolean, default=False, nullable=False)  # False : 편집X(레포트 생성) / True: 편집O(레포트 미생성)
+    chat_status = Column(Boolean, default=False, nullable=False)  # False : 레포트생성전=이어서채팅가능 / True: 레포트 생성완료=이어서채팅불가
     student_email = Column(String(50), ForeignKey('user_students.student_email'), nullable=False)
     
     student = relationship('UserStudent', back_populates='chat_logs')

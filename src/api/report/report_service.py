@@ -27,7 +27,7 @@ async def save_chatlog_and_get_recommendation(session_id: str, student_email: st
         _logger.info(f'=>> 세션 ID : {session_id}, 채팅이력 : {chat_content}')
         
         # 채팅 로그 저장
-        await chat_dao.create_chatlog(session_id, chat_content, student_email)
+        await report_dao.create_chatlog(session_id, chat_content, student_email)
         
         
         ######################################### 진로 추론 ####################################################
@@ -69,4 +69,10 @@ async def save_chatlog_and_get_recommendation(session_id: str, student_email: st
 async def get_chatlogs_by_teacher(teacher_email: str):
     ''' 선생님이 담당하는 학생들의 채팅 로그를 조회 '''
     chat_logs = await report_dao.get_chatlogs_by_teacher(teacher_email)
+    return chat_logs
+
+
+async def get_chatlogs_by_student(student_email: str):
+    ''' 학생의 채팅 로그를 조회 '''
+    chat_logs = await report_dao.get_chatlogs_by_student(student_email)
     return chat_logs
