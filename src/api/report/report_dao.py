@@ -54,18 +54,19 @@ async def create_chatlog(session_id: str, chat_content: list, student_email: str
 async def get_chatlogs_by_teacher(teacher_email: str, session: AsyncSession = rdb.inject_async()):
     ''' 선생님 이메일로 해당 선생님이 담당하는 학생들의 채팅 로그 조회 (chat_status가 True인 항목만) '''
     result = await session.execute(
-        select(ChatLog)
+        select(ChatLog, UserStudent.student_name)  # student_name도 선택
         .join(UserStudent, ChatLog.student_email == UserStudent.student_email)
         .where(UserStudent.teacher_email == teacher_email)
         .where(ChatLog.chat_status == True)  # chat_status가 True인 항목만 필터링
     )
-    return result.scalars().all()
+    return [{'chat': chat, 'student_name': student_name} for chat, student_name in result]
 
 
 @rdb.dao()
 async def search_chatlogs_by_teacher(teacher_email: str, search_type: str, search_query: str, session: AsyncSession = rdb.inject_async()):
     ''' 이름 또는 이메일로 학생의 채팅 로그 검색 '''
-    query = select(ChatLog).join(UserStudent, ChatLog.student_email == UserStudent.student_email)
+    query = select(ChatLog, UserStudent.student_name)  # student_name도 선택
+    query = query.join(UserStudent, ChatLog.student_email == UserStudent.student_email)
     
     if search_type == "name":
         query = query.where(UserStudent.student_name.ilike(f"%{search_query}%"))
@@ -76,7 +77,7 @@ async def search_chatlogs_by_teacher(teacher_email: str, search_type: str, searc
     query = query.where(ChatLog.chat_status == True)  # chat_status가 True인 항목만
     
     result = await session.execute(query)
-    return result.scalars().all()
+    return [{'chat': chat, 'student_name': student_name} for chat, student_name in result]
 
 
 
