@@ -49,16 +49,31 @@ async def save_chatlog_and_get_recommendation(session_id: str, student_email: st
         ########################################## 레포트 생성 ###################################################
         """
         [ 레포트 내용 ]
-        - 예측한 진로(분야)
-        - 해당 분야 직업 종류
-        - 직업 상세 정보
-        - 관련 학과 정보
+        - 직업군(예측 값)
+        - 연관 직업 + 직업 상세 정보
+        - 연관 전공 + 전공 상세 정보
         """
         
+        # 추천 직업군 및 연관 정보 생성 (예시 데이터) -> RAG으로 전환 예정
+        related_jobs = [
+            {"title": "[테스트용 예시1] 웹 개발자", "info": "[테스트] Develops and maintains websites"},
+            {"title": "[테스트용 예시2] 데이터 사이언티스트", "info": "[테스트] Analyzes complex data sets"}
+        ]
+        related_majors = [
+            {"major": "[테스트용 예시1] 컴퓨터공학전공", "info": "[테스트] Study of computation and information"},
+            {"major": "[테스트용 예시2] 정보통신전공", "info": "[테스트] Focus on the use of computers and technology"}
+        ]
+        
+        # ChatReport 저장
+        await report_dao.create_report(session_id, pred_decoded, related_jobs, related_majors)
+        
         # 레포트 생성
-        return {'prediction': pred_decoded}
-        # report = 
-        # return {"prediction": pred_decoded, "report": report}
+        return {
+            'prediction': pred_decoded,
+            'relatedJobs': related_jobs,
+            'relatedMajors': related_majors
+        }
+
     else:
         _logger.error(f'입력 받은 session_id 에 chatbot_instance가 없습니다. session_id: {session_id}')
         raise ValueError("챗봇 인스턴스가 없습니다.")

@@ -28,7 +28,7 @@ async def create_student_info(student_info: CreateStudent, session: AsyncSession
         student_email=student_info.student_email,
         student_name=student_info.student_name,
         student_password=pwd_context.hash(student_info.student_password),
-        teacher_email=student_info.student_teacher_email,
+        teacher_email=student_info.teacher_email,
     )
     session.add(db_user)
     await session.commit()

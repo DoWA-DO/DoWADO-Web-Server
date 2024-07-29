@@ -17,10 +17,10 @@ router = APIRouter(prefix="/report", tags=["진로 추천 레포트 관련 API"]
 
 @router.post(
     "/predict",
-    summary     = "채팅 로그 저장 및 진로 추천",
-    description = "- 채팅 로그를 저장하고 해당 로그를 기반으로 모델 추론을 통해 진로 추천 + 레포트 생성 및 저장",
+    summary="채팅 로그 저장 및 진로 추천",
+    description="- 채팅 로그를 저장하고 해당 로그를 기반으로 모델 추론을 통해 진로 추천 + 레포트 생성 및 저장",
     dependencies=[Depends(JWT.verify)],
-    responses   = Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
+    responses=Status.docs(SU.SUCCESS, ER.INVALID_TOKEN)
 )
 async def save_chatlog_and_get_recommendation(
     claims: Annotated[Dict[str, Any], Depends(JWT.verify)],
@@ -28,7 +28,25 @@ async def save_chatlog_and_get_recommendation(
 ):
     user_id = claims["email"]
     recommendation = await report_service.save_chatlog_and_get_recommendation(session_id, user_id)
+    if not recommendation:
+        raise HTTPException(status_code=404, detail="추천 결과를 생성할 수 없습니다.")
     return recommendation
+'''
+#### /predict 반환 데이터 구조 예시 ###
+{
+  "prediction": "추천 직업군",
+  "relatedJobs": [
+    { "title": "연관 직업 1", "info": "연관 직업 1 상세 정보" },
+    { "title": "연관 직업 2", "info": "연관 직업 2 상세 정보" }
+  ],
+  "relatedMajors": [
+    { "major": "연관 전공 1", "info": "연관 전공 1 상세 정보" },
+    { "major": "연관 전공 2", "info": "연관 전공 2 상세 정보" }
+  ]
+}
+'''
+
+
 
 
 @router.get(
@@ -84,3 +102,5 @@ async def get_chatlogs_by_student(
     if not chatlogs:
         raise HTTPException(status_code=404, detail="채팅 기록을 찾을 수 없습니다.")
     return chatlogs
+
+

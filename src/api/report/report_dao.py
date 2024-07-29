@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Result, ScalarResult, select, update, insert, delete
 from sqlalchemy.orm import Session, joinedload, query
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.database.models import ChatLog, UserStudent
+from src.database.models import ChatLog, UserStudent, ChatReport
 from src.database.session import AsyncSession, rdb
 
 
@@ -49,7 +49,27 @@ async def create_chatlog(session_id: str, chat_content: list, student_email: str
             "student_email": chatlog.student_email
         }))
         _logger.info(f'새로운 채팅 로그 삽입: {session_id}')
-        
+
+
+@rdb.dao(transactional=True)
+async def create_report(session_id: str, prediction: str, related_jobs: list, related_majors: list, session: AsyncSession = rdb.inject_async()) -> None:
+    ''' ChatReport 테이블에 추천된 직업군 및 관련 정보를 저장 '''
+    report = ChatReport(
+        chat_session_id=session_id,
+        report_career=prediction,
+        report_jobs=json.dumps(related_jobs),
+        report_majors=json.dumps(related_majors)
+    )
+    await session.execute(insert(ChatReport).values({
+        "chat_session_id": report.chat_session_id,
+        "report_career": report.report_career,
+        "report_jobs": report.report_jobs,
+        "report_majors": report.report_majors
+    }))
+    _logger.info(f'새로운 레포트 생성: {session_id}')
+
+
+
 @rdb.dao()
 async def get_chatlogs_by_teacher(teacher_email: str, session: AsyncSession = rdb.inject_async()):
     ''' 선생님 이메일로 해당 선생님이 담당하는 학생들의 채팅 로그 조회 (chat_status가 True인 항목만) '''
