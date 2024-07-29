@@ -47,8 +47,6 @@ async def save_chatlog_and_get_recommendation(
 '''
 
 
-
-
 @router.get(
     "/teacher/chatlogs",
     summary="선생님이 담당 학생들의 채팅 로그 조회",
@@ -104,3 +102,18 @@ async def get_chatlogs_by_student(
     return chatlogs
 
 
+
+@router.get(
+    "/content",
+    summary="데이터베이스에서 레포트 내용 가져오기",
+    description="선생님이 담당 학생의 레포트를 조회",
+    dependencies=[Depends(JWT.verify)],
+    responses=Status.docs(SU.SUCCESS, ER.INVALID_TOKEN, ER.NOT_FOUND)
+)
+async def get_teacher_report(
+    session_id: str
+):
+    report = await report_service.get_report_by_session_id(session_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="레포트를 찾을 수 없습니다.")
+    return report

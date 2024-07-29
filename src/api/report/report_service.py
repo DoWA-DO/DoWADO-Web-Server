@@ -97,3 +97,17 @@ async def get_chatlogs_by_student(student_email: str):
     ''' 학생의 채팅 로그를 조회 '''
     chat_logs = await report_dao.get_chatlogs_by_student(student_email)
     return chat_logs
+
+
+async def get_report_by_session_id(session_id: str):
+    ''' 특정 세션 ID에 대한 레포트 내용 가져오기 '''
+    report = await report_dao.get_report_by_session_id(session_id)
+    if report:
+        return {
+            "prediction": report.report_career, 
+            "relatedJobs": json.loads(report.report_jobs) if report.report_jobs else [],
+            "relatedMajors": json.loads(report.report_majors) if report.report_majors else []
+        }
+    else:
+        _logger.error(f'레포트를 찾을 수 없습니다. session_id: {session_id}')
+        return None

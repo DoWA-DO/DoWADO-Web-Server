@@ -110,3 +110,11 @@ async def get_chatlogs_by_student(student_email: str, session: AsyncSession = rd
         .where(ChatLog.student_email == student_email)
     )
     return [{'chat': chat, 'student_name': student_name} for chat, student_name in result]
+
+
+@rdb.dao(transactional=True)
+async def get_report_by_session_id(session_id: str, session: AsyncSession = rdb.inject_async()) -> Optional[ChatReport]:
+    ''' 특정 세션 ID에 대한 레포트 내용 가져오기 '''
+    result = await session.execute(select(ChatReport).where(ChatReport.chat_session_id == session_id))
+    report = result.scalars().first()
+    return report

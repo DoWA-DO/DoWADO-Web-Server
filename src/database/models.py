@@ -79,7 +79,6 @@ class ChatReport(Base):
     report_career = Column(String(50), nullable=True)  # 추천 직업군
     report_jobs = Column(JSON, nullable=True)  # 연관 직업 정보 (JSON 형식으로 저장)
     report_majors = Column(JSON, nullable=True)  # 연관 전공 정보 (JSON 형식으로 저장)
-    report_info = Column(Text, nullable=True)
     chat_session_id = Column(String(64), ForeignKey('chat_logs.chat_session_id'), nullable=False)
     
     chat_log = relationship('ChatLog', back_populates='report')
