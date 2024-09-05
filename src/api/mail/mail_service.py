@@ -8,14 +8,11 @@ import smtplib
 import string
 from fastapi import HTTPException
 from .mail_dto import EmailRequest
+from src.config import settings
 
-# env 파일 불러오기
-from dotenv import load_dotenv
-import os
-load_dotenv()
 
-NAVER_EMAIL = os.getenv("NAVER_EMAIL")
-NAVER_PASSWORD = os.getenv("NAVER_PASSWORD")
+NAVER_EMAIL = settings.mail.NAVER_EMAIL_ADDRESS
+NAVER_PASSWORD = settings.mail.NAVER_EMAIL_PASSWORD
 
 # Generate random verification code
 def generate_verification_code(length: int = 4) -> str:

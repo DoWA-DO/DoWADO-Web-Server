@@ -1,7 +1,4 @@
 """
-config : 프로젝트 전반에 공통으로 사용되는 모듈 모음
-"""
-"""
 애플리케이션 환경 설정 및 로깅 설정 모듈
 """
 from typing import Optional, Tuple, TypeVar, Type
@@ -25,37 +22,33 @@ load_dotenv(dotenv_path=env_path)
 
 
 class GeneralSettings(BaseSettings):
-    OPENAI_API_KEY: SecretStr
+    OPENAI_API_KEY: SecretStr = SecretStr(os.getenv("OPENAI_API_KEY"))
     DEBUG: bool = True
     API_DOC_VIEW: bool = True
 
 class RDBSettings(BaseSettings):
-    DB_PROTOCAL: str = "postgresql+psycopg"  # asyncpg | psycopg 이지만 psycopg3 사용(비동기가능/벡터DB+RDB) 
-    DB_USERNAME: str = "dowado"
-    DB_PASSWORD: str = SecretStr
-    DB_HOST: str = "localhost"
-    DB_PORT: str = "6024"
-    DB_NAME: str = "postgres"
+    DB_PROTOCAL: str = os.getenv("DB_PROTOCAL")  # asyncpg | psycopg 이지만 psycopg3 사용(비동기가능/벡터DB+RDB) 
+    DB_USERNAME: str = os.getenv("DB_USERNAME")
+    DB_PASSWORD: SecretStr = SecretStr(os.getenv("DB_PASSWORD")) 
+    DB_HOST: str = os.getenv("DB_HOST")
+    DB_PORT: str = os.getenv("DB_PORT")
+    DB_NAME: str = os.getenv("DB_NAME")
+
+    @property # 메서드를 클래스 속성처럼 사용 가능
+    def DATABASE_URL(self) -> str:
+        return f"{self.DB_PROTOCAL}://{self.DB_USERNAME}:{self.DB_PASSWORD.get_secret_value()}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
 class JWTSettings(BaseSettings):
-    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "default_secret_key") # secret key 생성 : openssl rand -hex 32
-    JWT_ACCESS_TOKEN_EXPIRE_MIN: int = 60 * 24 # 24시간
-    JWT_ALGORITHM: ClassVar[str] = "HS256"
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY") # secret key 생성 : openssl rand -hex 32
+    JWT_ACCESS_TOKEN_EXPIRE_MIN: float = float(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MIN"))
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM")
     # JWT_INV_ACCESS_EXPIRE_MIN: int = 1440
     # JWT_SESSION_EXPIRE_MIN: int = 30
     
-
-# class SMTPSettings(BaseSettings):
-#     MAIL_USERNAME: str = "rpamaster@rbrain.co.kr"
-#     MAIL_PASSWORD: SecretStr
-#     MAIL_FROM: str = "rpamaster@rbrain.co.kr"
-#     MAIL_PORT: int = 587
-#     MAIL_SERVER: str = "smtp-mail.outlook.com"
-#     MAIL_STARTTLS: bool = True
-#     MAIL_SSL_TLS: bool = False
-#     USE_CREDENTIALS: bool = True
-#     VALIDATE_CERTS: bool = True
-
+class SMTPSettings(BaseSettings):
+    NAVER_EMAIL_ADDRESS: str = os.getenv("NAVER_EMAIL_ADDRESS")
+    NAVER_EMAIL_PASSWORD: str = os.getenv("NAVER_EMAIL_PASSWORD")
+    
 class IdxSettings(BaseSettings):
     model_name: str = "gpt-3.5-turbo-1106" # gpt-3.5-turbo gpt-4-turbo
     temperature: int = 0
@@ -82,7 +75,7 @@ class Settings(BaseSettings):
     general: GeneralSettings = GeneralSettings()
     rdb: RDBSettings = RDBSettings()
     jwt: JWTSettings = JWTSettings()
-    # mail: SMTPSettings = SMTPSettings()
+    mail: SMTPSettings = SMTPSettings()
     Idx: IdxSettings = IdxSettings()
     
 settings = Settings()

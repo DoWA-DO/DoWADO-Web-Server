@@ -14,8 +14,6 @@ logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
 
-
-
 class RDBTools:
     ''' 데이터베이스 세션 도구 모음 '''
     

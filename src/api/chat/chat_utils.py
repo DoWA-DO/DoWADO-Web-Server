@@ -84,7 +84,7 @@ class ChatBase:
     # job info
     def _init_jobinfo_chain(self):
         ''' chain 초기화
-        create_stuff_documents_chain[현재 사용] : 문서 목록을 가져와서 모두 프롬프트로 포맷한 다음 해당 프롬프트를 LLM에 전달합니다.
+        create_stuff_documents_chain : 문서 목록을 가져와서 모두 프롬프트로 포맷한 다음 해당 프롬프트를 LLM에 전달합니다.
         create_history_aware_retriever : 대화 기록을 가져온 다음 이를 사용하여 검색 쿼리를 생성하고 이를 기본 리트리버에 전달
         create_retrieval_chain : 사용자 문의를 받아 리트리버로 전달하여 관련 문서를 가져옵니다. 그런 다음 해당 문서(및 원본 입력)는 LLM으로 전달되어 응답을 생성
         '''
@@ -154,10 +154,10 @@ class ChatGenerator:
         redis_client.rpush(chat_history_key, pickle.dumps(message))
     
     # 유틸리티
-    def get_chatlog_from_redis(self) -> list:
+    def get_chatlog_from_redis(self, num_turns: int = 10) -> list:
         ''' Redis에서 현재 객체의 session_id에 해당하는 채팅 로그 가져오기 '''
         chat_history_key = f"chat_history:{self.session_id}"
-        chat_log = redis_client.lrange(chat_history_key, 0, -1) # redis에서 모든 요소 가져옴
+        chat_log = redis_client.lrange(chat_history_key, -num_turns, -1) # redis에서 최근 10개 기록 가져오기
         _logger.info(f'=>> Redis에서 불러온 채팅기록 : {chat_log}')
         if not chat_log:
             _logger.warning(f'채팅 기록이 비어 있습니다: {self.session_id}')

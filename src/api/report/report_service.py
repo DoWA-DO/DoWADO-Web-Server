@@ -30,7 +30,6 @@ async def save_chatlog_and_get_recommendation(session_id: str, student_email: st
         # 채팅 로그 저장
         await report_dao.create_chatlog(session_id, chat_content, student_email)
         
-        
         ######################################### 진로 추론 ####################################################
         # 채팅 로그에서 query와 response를 합친 텍스트 생성
         combined_text = " ".join([entry["query"] + " " + entry["response"] for entry in chat_content])
@@ -39,12 +38,6 @@ async def save_chatlog_and_get_recommendation(session_id: str, student_email: st
         text = preprocess_text_kiwi(combined_text)
         pred = model.classify_dataframe(text)
         pred_decoded = label_decoding(pred)
-        
-        # 모델 추론 요청 (도커 컨테이너 버전)
-        # response = requests.post(f"{DOCKER_URL}/predict", json={"text": combined_text})
-        # if response.status_code != 200:
-        #     raise ValueError("모델 추론 중 오류 발생")
-
         
         ########################################## 레포트 생성 ###################################################
         """
@@ -63,6 +56,7 @@ async def save_chatlog_and_get_recommendation(session_id: str, student_email: st
             {"major": "[테스트용 예시1] 컴퓨터공학전공", "info": "[테스트] Study of computation and information"},
             {"major": "[테스트용 예시2] 정보통신전공", "info": "[테스트] Focus on the use of computers and technology"}
         ]
+        
         
         # ChatReport 저장
         await report_dao.create_report(session_id, pred_decoded, related_jobs, related_majors)
